@@ -1,0 +1,27 @@
+# .NET build outputs
+bin/
+obj/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+
+# VS Code
+.vscode/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+# Optional: Keep development secrets out of git
+appsettings.Development.json
