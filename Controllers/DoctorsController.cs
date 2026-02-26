@@ -70,4 +70,37 @@ public class DoctorsController : ControllerBase
 
         return Ok(doctor);
     }
+    // GET /api/doctors/{id}/slots?date=2026-02-22
+    [HttpGet("{id:int}/slots")]
+    public async Task<IActionResult> GetAvailableSlots(int id, [FromQuery] string date)
+    {
+        // 1) Validate doctor exists and active
+        var doctorExists = await _db.Doctors.AnyAsync(d => d.Id == id && d.IsActive);
+        if (!doctorExists)
+            return NotFound(new { message = "Doctor not found" });
+
+        // 2) Parse date safely
+        if (!DateOnly.TryParse(date, out var day))
+            return BadRequest(new { message = "Invalid date format. Use YYYY-MM-DD" });
+
+        var dayStart = day.ToDateTime(TimeOnly.MinValue);
+        var dayEnd = day.ToDateTime(TimeOnly.MaxValue);
+
+        // 3) Get only available (not booked) slots for that day
+        var slots = await _db.AvailabilitySlots
+            .Where(s => s.DoctorId == id
+                        && s.StartTime >= dayStart
+                        && s.StartTime <= dayEnd
+                        && s.IsBooked == false)
+            .OrderBy(s => s.StartTime)
+            .Select(s => new
+            {
+                s.Id,
+                s.StartTime,
+                s.EndTime
+            })
+            .ToListAsync();
+
+        return Ok(slots);
+    }
 }

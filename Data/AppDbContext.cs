@@ -28,5 +28,10 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Doctor>()
             .Property(d => d.Fee)
             .HasPrecision(10, 2);
+
+        // ✅ هذا الجديد لمنع تكرار نفس slot لنفس الدكتور
+        modelBuilder.Entity<AvailabilitySlot>()
+    .HasIndex(s => new { s.DoctorId, s.StartTime })
+    .IsUnique();
     }
 }
