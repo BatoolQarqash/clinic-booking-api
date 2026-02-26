@@ -34,6 +34,10 @@ public class AppointmentsController : ControllerBase
         if (slot.DoctorId != req.DoctorId)
             return BadRequest(new { message = "Slot does not belong to this doctor" });
 
+        // Prevent booking past slots
+        if (slot.StartTime <= DateTime.Now)
+            return BadRequest(new { message = "You cannot book a slot in the past." });
+
         if (slot.IsBooked)
             return Conflict(new { message = "Slot already booked" });
 
@@ -68,6 +72,7 @@ public class AppointmentsController : ControllerBase
     }
 
     // GET /api/appointments/my
+
     [HttpGet("my")]
     [Authorize]
     public async Task<IActionResult> MyAppointments()
@@ -86,14 +91,23 @@ public class AppointmentsController : ControllerBase
                 a.Id,
                 status = a.Status.ToString(),
                 a.CreatedAt,
-                Doctor = new { a.Doctor!.Id, a.Doctor.FullName, a.Doctor.ClinicName },
-                Slot = new { a.Slot!.Id, a.Slot.StartTime, a.Slot.EndTime }
+                Doctor = new
+                {
+                    a.Doctor!.Id,
+                    a.Doctor.FullName,
+                    a.Doctor.ClinicName
+                },
+                Slot = new
+                {
+                    a.Slot!.Id,
+                    a.Slot.StartTime,
+                    a.Slot.EndTime
+                }
             })
             .ToListAsync();
 
         return Ok(items);
     }
-
     // PATCH /api/appointments/{id}/cancel
     [HttpPatch("{id:int}/cancel")]
     [Authorize]
@@ -112,6 +126,14 @@ public class AppointmentsController : ControllerBase
 
         if (appt.Status == AppointmentStatus.Cancelled)
             return Ok(new { message = "Already cancelled" });
+        if (appt.Slot == null)
+            return BadRequest(new { message = "Slot data is missing." });
+
+        var minutesLeft = (appt.Slot.StartTime - DateTime.Now).TotalMinutes;
+
+        // If appointment is within 60 minutes, reject cancellation
+        if (minutesLeft <= 60)
+            return BadRequest(new { message = "Cancellation is not allowed within 1 hour of the appointment." });
 
         // Change status + free the slot (MVP policy)
         appt.Status = AppointmentStatus.Cancelled;
