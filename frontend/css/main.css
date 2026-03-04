@@ -1,0 +1,276 @@
+/* Small custom styling on top of Bootstrap */
+body { font-family: system-ui, Arial, sans-serif; }
+.card { border-radius: 16px; }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root{
+  --cb-bg: #EEF2FF;
+  --cb-primary: #3E69FE;
+  --cb-text: #0B1220;         /* more vivid than pure black */
+  --cb-muted: #8A94A6;
+  --cb-card: #FFFFFF;
+  --cb-shadow: 0 12px 28px rgba(16, 24, 40, 0.12);
+  --cb-radius: 18px;
+}
+
+body{
+  font-family: 'Poppins', system-ui, Arial, sans-serif;
+  color: var(--cb-text);
+  background: var(--cb-bg);
+}
+
+.cb-bg{ background: var(--cb-bg); }
+
+.cb-shell{
+  max-width: 390px;            /* matches frame */
+  min-height: 844px;
+  margin: 0 auto;
+  background: transparent;
+  position: relative;
+  padding-bottom: 90px;        /* space for bottom nav */
+}
+
+/* On desktop: center the mobile shell and keep it nice */
+@media (min-width: 992px){
+  .cb-shell{
+    max-width: 460px;          /* a bit larger for laptop */
+  }
+}
+
+.cb-avatar{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.cb-hello{
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.cb-hello-name{
+  font-weight: 500;
+  color: var(--cb-muted);
+}
+
+.cb-icon-btn{
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--cb-text);
+}
+.cb-icon-btn:hover{
+  background: rgba(0,0,0,0.05);
+}
+
+.cb-search{
+  height: 38px;                /* from figma */
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+}
+.cb-search-icon{
+  color: var(--cb-muted);
+  font-size: 16px;
+}
+.cb-search-input{
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 13px;
+  color: var(--cb-text);
+}
+.cb-search-input::placeholder{ color: var(--cb-muted); font-style: italic; }
+
+.cb-section-title{
+  font-size: 24px;            /* from figma */
+  font-weight: 600;           /* SemiBold */
+}
+
+.cb-pill-link{
+  font-size: 12px;
+  color: #fff;
+  background: var(--cb-primary);
+  border-radius: 999px;
+  padding: 6px 12px;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(62,105,254,0.35);
+}
+.cb-pill-link:hover{ opacity: 0.95; }
+
+/* Services row */
+.cb-services-row{
+  width: 338px;              /* from figma */
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.cb-services-row::-webkit-scrollbar{ height: 6px; }
+.cb-services-row::-webkit-scrollbar-thumb{ background: rgba(0,0,0,0.12); border-radius: 99px; }
+
+.cb-service-card{
+  width: 102px;              /* from figma */
+  height: 78px;              /* from figma */
+  background: var(--cb-primary);
+  border-radius: 18px;
+  text-decoration: none;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.cb-service-icon{
+  font-size: 22px;
+  line-height: 1;
+}
+.cb-service-name{
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Doctor card */
+.cb-doctor-card{
+  width: 346px;              /* from figma */
+  min-height: 111px;         /* from figma */
+  background: var(--cb-card);
+  border-radius: var(--cb-radius);
+  box-shadow: var(--cb-shadow);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cb-doctor-left{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cb-doctor-img{
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #e6e6e6;
+}
+.cb-doctor-info{ line-height: 1.2; }
+.cb-doctor-name{ font-weight: 600; font-size: 14px; }
+.cb-doctor-title{ font-size: 12px; color: var(--cb-muted); font-style: italic; margin-top: 2px; }
+.cb-doctor-meta{ font-size: 12px; color: var(--cb-muted); margin-top: 6px; display:flex; gap:10px; }
+.cb-doctor-meta i{ color: var(--cb-muted); }
+
+.cb-doctor-right{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.cb-rating{
+  font-size: 12px;
+  color: var(--cb-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cb-rating i{ color: #F6B100; }
+
+.cb-arrow-btn{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #111827;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* Bottom nav */
+.cb-bottom-nav{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: min(390px, 100%);
+  height: 80px;              /* figma */
+  background: #fff;
+  box-shadow: 0 -10px 24px rgba(16, 24, 40, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 18px;
+}
+
+.cb-nav-item{
+  font-size: 22px;
+  color: #111827;
+  text-decoration: none;
+  opacity: 0.6;
+}
+.cb-nav-item.active{
+  color: var(--cb-primary);
+  opacity: 1;
+}
+/* Doctor hero */
+.cb-doctor-hero{
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #ddd;
+}
+.cb-doctor-hero-img{
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+}
+.cb-doctor-hero-card{
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+  background: var(--cb-primary);
+  color: #fff;
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: 0 12px 26px rgba(62,105,254,0.35);
+}
+.cb-hero-name{ font-weight: 600; font-size: 16px; }
+.cb-hero-sub{ font-size: 12px; opacity: 0.95; }
+
+/* Slots */
+.cb-slots-wrap{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cb-slot-btn{
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--cb-text);
+}
+.cb-slot-btn.active{
+  background: #F6B1001a;
+  border-color: #F6B100;
+  color: #7A4B00;
+}
