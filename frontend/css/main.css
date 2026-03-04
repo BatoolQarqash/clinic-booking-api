@@ -22,18 +22,20 @@ body{
 .cb-bg{ background: var(--cb-bg); }
 
 .cb-shell{
-  max-width: 390px;            /* matches frame */
+  width: 100%;
+  max-width: 420px;      /* mobile look */
   min-height: 844px;
   margin: 0 auto;
-  background: transparent;
   position: relative;
-  padding-bottom: 90px;        /* space for bottom nav */
+  padding-bottom: 90px;  /* bottom nav space */
 }
 
-/* On desktop: center the mobile shell and keep it nice */
-@media (min-width: 992px){
+/* Desktop/tablet: allow wider layout */
+@media (min-width: 768px){
   .cb-shell{
-    max-width: 460px;          /* a bit larger for laptop */
+    max-width: 900px;     /* wider on laptop */
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 
@@ -112,7 +114,7 @@ body{
 
 /* Services row */
 .cb-services-row{
-  width: 338px;              /* from figma */
+  width: 100%;             /* from figma */
   display: flex;
   gap: 14px;
   overflow-x: auto;
@@ -146,7 +148,7 @@ body{
 
 /* Doctor card */
 .cb-doctor-card{
-  width: 346px;              /* from figma */
+  width: 100%;              /* from figma */
   min-height: 111px;         /* from figma */
   background: var(--cb-card);
   border-radius: var(--cb-radius);
@@ -208,7 +210,7 @@ body{
   left: 50%;
   transform: translateX(-50%);
   bottom: 0;
-  width: min(390px, 100%);
+  width: min(900px, 100%);
   height: 80px;              /* figma */
   background: #fff;
   box-shadow: 0 -10px 24px rgba(16, 24, 40, 0.10);
@@ -270,7 +272,29 @@ body{
   color: var(--cb-text);
 }
 .cb-slot-btn.active{
-  background: #F6B1001a;
+ background: #F6B100;
   border-color: #F6B100;
-  color: #7A4B00;
+  color: #fff;
+}
+/* Appointment card (matches your clean mobile UI) */
+.cb-appt-card{
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.12);
+  padding: 14px;
+}
+/* Doctors list becomes grid on larger screens */
+@media (min-width: 768px){
+  #doctorsList{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  /* appointment list can also be 2 columns if you want */
+  #apptList{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
 }
