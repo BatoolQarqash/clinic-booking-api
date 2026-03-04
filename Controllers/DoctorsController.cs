@@ -43,6 +43,35 @@ public class DoctorsController : ControllerBase
 
         return Ok(doctors);
     }
+    // GET /api/doctors/top?take=5
+    [HttpGet("top")]
+    public async Task<IActionResult> GetTopDoctors([FromQuery] int take = 5)
+    {
+        // Safety limits
+        if (take < 1) take = 5;
+        if (take > 20) take = 20;
+
+        var doctors = await _db.Doctors
+            .Include(d => d.Service)
+            .Where(d => d.IsActive)
+            .OrderByDescending(d => d.Rating ?? 0)   // highest rating first (null treated as 0)
+            .ThenBy(d => d.FullName)
+            .Take(take)
+            .Select(d => new
+            {
+                d.Id,
+                d.FullName,
+                d.Title,
+                d.ClinicName,
+                d.ImageUrl,
+                d.Fee,
+                d.Rating,
+                Service = new { d.Service!.Id, d.Service!.Name }
+            })
+            .ToListAsync();
+
+        return Ok(doctors);
+    }
 
     // GET /api/doctors/5
     [HttpGet("{id:int}")]

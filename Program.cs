@@ -86,10 +86,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
         };
     });
-
+//DI
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<ClinicBooking.Services.SlotService>();
+builder.Services.AddScoped<ClinicBooking.Services.AppointmentService>();
 var app = builder.Build();
+//✅ هيك أي Exception غير معالج يرجع JSON مرتب + traceId.
+app.UseMiddleware<ClinicBooking.Middlewares.ExceptionHandlingMiddleware>();
+
 
 
 // ✅ يطبّق migrations ثم يعمل seeding

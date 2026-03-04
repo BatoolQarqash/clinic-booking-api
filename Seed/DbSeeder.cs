@@ -18,13 +18,16 @@ public static class DbSeeder
             return;
 
         var services = new List<Service>
-        {
-            new() { Name = "Dentistry" },
-            new() { Name = "Cardiology" },
-            new() { Name = "Dermatology" },
-            new() { Name = "Orthopedics" },
-            new() { Name = "Pediatrics" }
-        };
+{
+    new() { Name = "Dentistry" },      // tooth
+    new() { Name = "Neurology" },      // brain
+    new() { Name = "Cardiology" },     // heart
+    new() { Name = "Dermatology" },    // droplet
+    new() { Name = "Pediatrics" },     // emoji-smile
+    new() { Name = "Orthopedics" },    // bandaid
+    new() { Name = "Ophthalmology" },  // eye
+    new() { Name = "ENT" }             // ear
+};
 
         await db.Services.AddRangeAsync(services);
         await db.SaveChangesAsync();
