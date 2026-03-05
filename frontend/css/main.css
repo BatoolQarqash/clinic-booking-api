@@ -1,44 +1,79 @@
-/* Small custom styling on top of Bootstrap */
-body { font-family: system-ui, Arial, sans-serif; }
-.card { border-radius: 16px; }
+/* frontend/css/main.css */
+
+/* -------------------------------------------------------
+   Google Font (must be the first line in the file)
+-------------------------------------------------------- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
+/* -------------------------------------------------------
+   Base Styling (small custom styling on top of Bootstrap)
+-------------------------------------------------------- */
+body {
+  font-family: system-ui, Arial, sans-serif;
+}
+.card {
+  border-radius: 16px;
+}
+
+/* -------------------------------------------------------
+   Design Tokens (CSS Variables)
+-------------------------------------------------------- */
 :root{
   --cb-bg: #EEF2FF;
   --cb-primary: #3E69FE;
-  --cb-text: #0B1220;         /* more vivid than pure black */
-  --cb-muted: #8A94A6;
+  --cb-text: #0B1220;         /* vivid dark text */
+  --cb-muted: #8A94A6;        /* muted gray */
   --cb-card: #FFFFFF;
   --cb-shadow: 0 12px 28px rgba(16, 24, 40, 0.12);
   --cb-radius: 18px;
 }
 
+/* -------------------------------------------------------
+   Global Page Background + Typography
+-------------------------------------------------------- */
 body{
   font-family: 'Poppins', system-ui, Arial, sans-serif;
   color: var(--cb-text);
   background: var(--cb-bg);
 }
 
-.cb-bg{ background: var(--cb-bg); }
+.cb-bg{
+  background: var(--cb-bg);
+}
 
+/* -------------------------------------------------------
+   App Shell (Mobile-first)
+   - On mobile: looks like an app container (max 420px)
+   - On desktop: becomes wider and responsive
+-------------------------------------------------------- */
 .cb-shell{
   width: 100%;
   max-width: 420px;      /* mobile look */
-  min-height: 844px;
+  min-height: 100vh;     /* ✅ use full viewport height */
   margin: 0 auto;
   position: relative;
-  padding-bottom: 90px;  /* bottom nav space */
+  padding-bottom: 90px;  /* space for bottom nav */
 }
 
-/* Desktop/tablet: allow wider layout */
+/* Tablet */
 @media (min-width: 768px){
   .cb-shell{
-    max-width: 900px;     /* wider on laptop */
+    max-width: 900px;
     padding-left: 16px;
     padding-right: 16px;
   }
 }
 
+/* Desktop */
+@media (min-width: 992px){
+  .cb-shell{
+    max-width: 1140px;
+  }
+}
+
+/* -------------------------------------------------------
+   Small UI Elements
+-------------------------------------------------------- */
 .cb-avatar{
   width: 34px;
   height: 34px;
@@ -57,6 +92,7 @@ body{
   color: var(--cb-muted);
 }
 
+/* Icon button (top bar actions) */
 .cb-icon-btn{
   width: 40px;
   height: 40px;
@@ -73,8 +109,11 @@ body{
   background: rgba(0,0,0,0.05);
 }
 
+/* -------------------------------------------------------
+   Search Component
+-------------------------------------------------------- */
 .cb-search{
-  height: 38px;                /* from figma */
+  height: 38px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08);
@@ -94,11 +133,17 @@ body{
   font-size: 13px;
   color: var(--cb-text);
 }
-.cb-search-input::placeholder{ color: var(--cb-muted); font-style: italic; }
+.cb-search-input::placeholder{
+  color: var(--cb-muted);
+  font-style: italic;
+}
 
+/* -------------------------------------------------------
+   Section Titles + Action Links
+-------------------------------------------------------- */
 .cb-section-title{
-  font-size: 24px;            /* from figma */
-  font-weight: 600;           /* SemiBold */
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .cb-pill-link{
@@ -110,22 +155,31 @@ body{
   text-decoration: none;
   box-shadow: 0 8px 18px rgba(62,105,254,0.35);
 }
-.cb-pill-link:hover{ opacity: 0.95; }
+.cb-pill-link:hover{
+  opacity: 0.95;
+}
 
-/* Services row */
+/* -------------------------------------------------------
+   Services Row (horizontal scroll)
+-------------------------------------------------------- */
 .cb-services-row{
-  width: 100%;             /* from figma */
+  width: 100%;
   display: flex;
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 6px;
 }
-.cb-services-row::-webkit-scrollbar{ height: 6px; }
-.cb-services-row::-webkit-scrollbar-thumb{ background: rgba(0,0,0,0.12); border-radius: 99px; }
+.cb-services-row::-webkit-scrollbar{
+  height: 6px;
+}
+.cb-services-row::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,0.12);
+  border-radius: 99px;
+}
 
 .cb-service-card{
-  width: 102px;              /* from figma */
-  height: 78px;              /* from figma */
+  width: 102px;
+  height: 78px;
   background: var(--cb-primary);
   border-radius: 18px;
   text-decoration: none;
@@ -146,43 +200,76 @@ body{
   font-weight: 500;
 }
 
-/* Doctor card */
+/* -------------------------------------------------------
+   Doctor Card (Responsive-friendly, no fixed widths)
+-------------------------------------------------------- */
 .cb-doctor-card{
-  width: 100%;              /* from figma */
-  min-height: 111px;         /* from figma */
-  background: var(--cb-card);
-  border-radius: var(--cb-radius);
-  box-shadow: var(--cb-shadow);
-  padding: 12px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(0,0,0,.06);
 }
 
+/* Left side = image + text */
 .cb-doctor-left{
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0; /* ✅ allows long text to wrap instead of overflowing */
 }
-.cb-doctor-img{
-  width: 72px;
-  height: 72px;
-  border-radius: 14px;
-  object-fit: cover;
-  background: #e6e6e6;
-}
-.cb-doctor-info{ line-height: 1.2; }
-.cb-doctor-name{ font-weight: 600; font-size: 14px; }
-.cb-doctor-title{ font-size: 12px; color: var(--cb-muted); font-style: italic; margin-top: 2px; }
-.cb-doctor-meta{ font-size: 12px; color: var(--cb-muted); margin-top: 6px; display:flex; gap:10px; }
-.cb-doctor-meta i{ color: var(--cb-muted); }
 
-.cb-doctor-right{
+.cb-doctor-img{
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.cb-doctor-info{
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.cb-doctor-name{
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.cb-doctor-title{
+  font-size: 12px;
+  color: var(--cb-muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* meta row (fee + service) */
+.cb-doctor-meta{
+  font-size: 12px;
+  color: var(--cb-muted);
+  margin-top: 6px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
   gap: 10px;
 }
+.cb-doctor-meta i{
+  color: var(--cb-muted);
+}
+
+/* Right side = rating + arrow */
+.cb-doctor-right{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
 .cb-rating{
   font-size: 12px;
   color: var(--cb-text);
@@ -190,7 +277,9 @@ body{
   align-items: center;
   gap: 6px;
 }
-.cb-rating i{ color: #F6B100; }
+.cb-rating i{
+  color: #F6B100;
+}
 
 .cb-arrow-btn{
   width: 34px;
@@ -204,20 +293,35 @@ body{
   text-decoration: none;
 }
 
-/* Bottom nav */
+/* -------------------------------------------------------
+   Bottom Navigation
+   - Centered and matches shell width
+   - Prevents giant white bar on desktop
+-------------------------------------------------------- */
 .cb-bottom-nav{
   position: fixed;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 0;
-  width: min(900px, 100%);
-  height: 80px;              /* figma */
-  background: #fff;
-  box-shadow: 0 -10px 24px rgba(16, 24, 40, 0.10);
+  width: min(420px, 100%);
+  height: 74px;
+  background: #ffffff;
+  border-top: 1px solid rgba(0,0,0,.06);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 18px;
+  z-index: 999;
+}
+
+@media (min-width: 768px){
+  .cb-bottom-nav{
+    width: min(900px, 100%);
+  }
+}
+@media (min-width: 992px){
+  .cb-bottom-nav{
+    width: min(1140px, 100%);
+  }
 }
 
 .cb-nav-item{
@@ -230,19 +334,28 @@ body{
   color: var(--cb-primary);
   opacity: 1;
 }
-/* Doctor hero */
+
+/* -------------------------------------------------------
+   Doctor Details Hero (Fix "half image disappears")
+   - Responsive height using clamp()
+-------------------------------------------------------- */
 .cb-doctor-hero{
   position: relative;
   border-radius: 22px;
   overflow: hidden;
   background: #ddd;
 }
+
 .cb-doctor-hero-img{
   width: 100%;
-  height: 240px;
+  height: clamp(180px, 22vw, 320px); /* ✅ responsive hero height */
   object-fit: cover;
   display: block;
+    object-position: center 30%; /* ✅ move focus slightly upward */
+
 }
+
+/* Overlay info card */
 .cb-doctor-hero-card{
   position: absolute;
   left: 16px;
@@ -254,15 +367,25 @@ body{
   padding: 12px 14px;
   box-shadow: 0 12px 26px rgba(62,105,254,0.35);
 }
-.cb-hero-name{ font-weight: 600; font-size: 16px; }
-.cb-hero-sub{ font-size: 12px; opacity: 0.95; }
 
-/* Slots */
+.cb-hero-name{
+  font-weight: 600;
+  font-size: 16px;
+}
+.cb-hero-sub{
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+/* -------------------------------------------------------
+   Slots (buttons)
+-------------------------------------------------------- */
 .cb-slots-wrap{
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+
 .cb-slot-btn{
   border: 1px solid rgba(0,0,0,0.12);
   background: #fff;
@@ -270,31 +393,22 @@ body{
   padding: 8px 12px;
   font-size: 12px;
   color: var(--cb-text);
+  cursor: pointer;
 }
+
 .cb-slot-btn.active{
- background: #F6B100;
+  background: #F6B100;
   border-color: #F6B100;
   color: #fff;
 }
-/* Appointment card (matches your clean mobile UI) */
+
+/* -------------------------------------------------------
+   Appointment Card (My Appointments)
+-------------------------------------------------------- */
 .cb-appt-card{
+  width: 100%;
   background: #fff;
   border-radius: 18px;
-  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.12);
+  box-shadow: var(--cb-shadow);
   padding: 14px;
-}
-/* Doctors list becomes grid on larger screens */
-@media (min-width: 768px){
-  #doctorsList{
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  /* appointment list can also be 2 columns if you want */
-  #apptList{
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
 }

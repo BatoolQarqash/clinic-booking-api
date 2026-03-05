@@ -1,189 +1,251 @@
-// ====== Guards & helpers ======
-const token = localStorage.getItem(TOKEN_KEY);
-if (!token) window.location.href = "login.html";
+// frontend/js/doctor-details.js
 
-// Read doctorId from URL: doctor-details.html?id=123
-const params = new URLSearchParams(window.location.search);
-const doctorId = parseInt(params.get("id"), 10);
+(() => {
+  // ---------- DOM references ----------
+  const heroImg = document.getElementById("doctorHeroImg");
+  const doctorName = document.getElementById("doctorName");
+  const doctorTitle = document.getElementById("doctorTitle");
+  const doctorClinic = document.getElementById("doctorClinic");
+  const doctorFee = document.getElementById("doctorFee");
+  const doctorRating = document.getElementById("doctorRating");
+  const doctorBio = document.getElementById("doctorBio");
 
-if (!doctorId) {
-  alert("Missing doctor id");
-  window.location.href = "home.html";
-}
+  const dateInput = document.getElementById("dateInput");
+  const loadSlotsBtn = document.getElementById("loadSlotsBtn");
+  const slotsWrap = document.getElementById("slotsWrap");
+  const slotsError = document.getElementById("slotsError");
+  const slotsLoading = document.getElementById("slotsLoading");
 
-let selectedSlotId = null;
+  const confirmBtn = document.getElementById("confirmBtn");
+  const bookMsg = document.getElementById("bookMsg");
 
-// ====== DOM refs ======
-const slotsLoading = document.getElementById("slotsLoading");
+  // ---------- State ----------
+  let doctorId = null;
+  let selectedSlotId = null;
 
-const nameEl = document.getElementById("doctorName");
-const titleEl = document.getElementById("doctorTitle");
-const clinicEl = document.getElementById("doctorClinic");
-const feeEl = document.getElementById("doctorFee");
-const ratingEl = document.getElementById("doctorRating");
-const bioEl = document.getElementById("doctorBio");
-const imgEl = document.getElementById("doctorHeroImg");
-
-const dateInput = document.getElementById("dateInput");
-const loadSlotsBtn = document.getElementById("loadSlotsBtn");
-const slotsWrap = document.getElementById("slotsWrap");
-const slotsError = document.getElementById("slotsError");
-const confirmBtn = document.getElementById("confirmBtn");
-const bookMsg = document.getElementById("bookMsg");
-
-// ====== Default date: tomorrow (avoid past date) ======
-const today = new Date();
-today.setDate(today.getDate() + 1);
-dateInput.valueAsDate = today;
-
-// ====== UI helpers ======
-function showSlotsError(msg) {
-  slotsError.textContent = msg;
-  slotsError.classList.remove("d-none");
-}
-
-function hideSlotsError() {
-  slotsError.textContent = "";
-  slotsError.classList.add("d-none");
-}
-
-function resetBookingUI() {
-  selectedSlotId = null;
-  confirmBtn.disabled = true;
-  confirmBtn.textContent = "Confirm";
-  bookMsg.classList.add("d-none");
-  bookMsg.textContent = "";
-}
-
-function setLoading(isLoading) {
-  if (slotsLoading) {
-    if (isLoading) slotsLoading.classList.remove("d-none");
-    else slotsLoading.classList.add("d-none");
+  /**
+   * Require user authentication.
+   * Redirects to login if token is missing.
+   */
+  function requireAuth() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) window.location.href = "login.html";
   }
 
-  loadSlotsBtn.disabled = isLoading;
-  // Confirm enabled only if slot selected and not loading
-  confirmBtn.disabled = isLoading || !selectedSlotId;
-}
-
-// Format "2026-02-22T09:00:00" -> "09:00 - 09:30"
-function formatTimeRange(startIso, endIso) {
-  const start = new Date(startIso);
-  const end = new Date(endIso);
-
-  const pad = (n) => String(n).padStart(2, "0");
-  const s = `${pad(start.getHours())}:${pad(start.getMinutes())}`;
-  const e = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
-  return `${s} - ${e}`;
-}
-
-// ====== Load doctor info ======
-async function loadDoctor() {
-  const d = await apiFetch(`/doctors/${doctorId}`); // public endpoint
-
-  nameEl.textContent = d.fullName;
-  titleEl.textContent = d.title || "";
-  clinicEl.textContent = d.clinicName || "";
-  feeEl.textContent = `$${d.fee}`;
-  ratingEl.textContent = d.rating ?? "4.8";
-  bioEl.textContent = d.bio || "";
-
-  if (d.imageUrl) imgEl.src = d.imageUrl;
-}
-
-// ====== Load available slots for selected date ======
-async function loadSlots() {
-  hideSlotsError();
-  resetBookingUI();
-  slotsWrap.innerHTML = "";
-
-  const date = dateInput.value; // "YYYY-MM-DD"
-  if (!date) {
-    showSlotsError("Please choose a date.");
-    return;
+  /**
+   * Read doctor id from URL query string.
+   * Example: doctor-details.html?id=3
+   * @returns {number|null}
+   */
+  function getDoctorIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const id = parseInt(params.get("id"), 10);
+    return Number.isFinite(id) ? id : null;
   }
 
-  setLoading(true);
+  /**
+   * Show a warning alert (used for slot loading issues).
+   * @param {string} msg
+   */
+  function showSlotsError(msg) {
+    slotsError.textContent = msg;
+    slotsError.classList.remove("d-none");
+  }
 
-  try {
-    const slots = await apiFetch(`/doctors/${doctorId}/slots?date=${date}`, { auth: true });
+  /**
+   * Hide slot error alert.
+   */
+  function hideSlotsError() {
+    slotsError.textContent = "";
+    slotsError.classList.add("d-none");
+  }
 
-    if (!slots.length) {
+  /**
+   * Show a success message after booking.
+   * @param {string} msg
+   */
+  function showBookingMessage(msg) {
+    bookMsg.textContent = msg;
+    bookMsg.classList.remove("d-none");
+  }
+
+  /**
+   * Hide booking message.
+   */
+  function hideBookingMessage() {
+    bookMsg.textContent = "";
+    bookMsg.classList.add("d-none");
+  }
+
+  /**
+   * Set doctor hero image safely.
+   * Supports both: imageUrl (camelCase) and ImageUrl (PascalCase).
+   * @param {any} doctor
+   */
+  function setDoctorImage(doctor) {
+    const img =
+      doctor.imageUrl ||
+      doctor.ImageUrl || // ✅ very important (backend may return PascalCase)
+      "../assets/img/doctor-placeholder.png";
+
+    heroImg.src = img;
+
+    // If the image fails, fallback to placeholder
+    heroImg.onerror = () => {
+      heroImg.src = "../assets/img/doctor-placeholder.png";
+    };
+  }
+
+  /**
+   * Render doctor details into the UI.
+   * @param {any} doctor
+   */
+  function renderDoctor(doctor) {
+    setDoctorImage(doctor);
+
+    doctorName.textContent = doctor.fullName || doctor.FullName || "Doctor";
+    doctorTitle.textContent = doctor.title || doctor.Title || "";
+    doctorClinic.textContent = doctor.clinicName || doctor.ClinicName || "";
+    doctorFee.textContent = `$${doctor.fee ?? doctor.Fee ?? 0}`;
+    doctorRating.textContent = doctor.rating ?? doctor.Rating ?? "—";
+    doctorBio.textContent = doctor.bio || doctor.Bio || "";
+  }
+
+  /**
+   * Load doctor data from backend.
+   */
+  async function loadDoctor() {
+    try {
+      const doctor = await apiFetch(`/doctors/${doctorId}`);
+      renderDoctor(doctor);
+    } catch (e) {
+      showSlotsError(e.message);
+    }
+  }
+
+  /**
+   * Format time label from ISO (slot start time).
+   * @param {string} iso
+   */
+  function formatTime(iso) {
+    const d = new Date(iso);
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+
+  /**
+   * Render available slots as clickable pills.
+   * @param {Array} slots
+   */
+  function renderSlots(slots) {
+    slotsWrap.innerHTML = "";
+    selectedSlotId = null;
+    confirmBtn.disabled = true;
+
+    if (!slots || slots.length === 0) {
       showSlotsError("No available slots for this date.");
       return;
     }
 
-    // Render slots as buttons
-    slots.forEach((s) => {
+    slots.forEach(s => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "cb-slot-btn";
-      btn.textContent = formatTimeRange(s.startTime, s.endTime);
+      btn.textContent = formatTime(s.startTime || s.StartTime);
 
       btn.addEventListener("click", () => {
-        // Unselect all
-        document.querySelectorAll(".cb-slot-btn").forEach((b) => b.classList.remove("active"));
-        // Select this
+        // Remove active from all buttons
+        slotsWrap.querySelectorAll(".cb-slot-btn").forEach(b => b.classList.remove("active"));
+
+        // Set this as active
         btn.classList.add("active");
-        selectedSlotId = s.id;
+
+        // Save selection
+        selectedSlotId = s.id || s.Id;
         confirmBtn.disabled = false;
       });
 
       slotsWrap.appendChild(btn);
     });
-  } catch (e) {
-    showSlotsError(e.message);
-  } finally {
-    // ✅ Always re-enable the Load button even if we return early
-    setLoading(false);
   }
-}
 
-// ====== Book selected slot ======
-async function bookSelectedSlot() {
-  hideSlotsError();
-  bookMsg.classList.add("d-none");
-  bookMsg.textContent = "";
+  /**
+   * Load available slots for selected date.
+   */
+  async function loadSlots() {
+    hideSlotsError();
+    hideBookingMessage();
 
-  if (!selectedSlotId) {
-    showSlotsError("Please select a time slot.");
+    const date = dateInput.value;
+    if (!date) {
+      showSlotsError("Please select a date first.");
+      return;
+    }
+
+    loadSlotsBtn.disabled = true;
+    slotsLoading.classList.remove("d-none");
+    slotsWrap.innerHTML = "";
+    confirmBtn.disabled = true;
+
+    try {
+      const slots = await apiFetch(`/doctors/${doctorId}/slots?date=${date}`);
+      renderSlots(slots);
+    } catch (e) {
+      showSlotsError(e.message);
+    } finally {
+      loadSlotsBtn.disabled = false;
+      slotsLoading.classList.add("d-none");
+    }
+  }
+
+  /**
+   * Confirm booking for the selected slot.
+   */
+  async function confirmBooking() {
+    hideBookingMessage();
+    hideSlotsError();
+
+    if (!selectedSlotId) {
+      showSlotsError("Please select a slot first.");
+      return;
+    }
+
+    confirmBtn.disabled = true;
+
+    try {
+      const res = await apiFetch("/appointments", {
+        method: "POST",
+        auth: true,
+        body: {
+          doctorId,
+          slotId: selectedSlotId
+        }
+      });
+
+      showBookingMessage(res?.message || "Appointment booked successfully!");
+      // Refresh slots to show updated availability
+      await loadSlots();
+    } catch (e) {
+      showSlotsError(e.message);
+      confirmBtn.disabled = false;
+    }
+  }
+
+  // ---------- Init ----------
+  requireAuth();
+
+  doctorId = getDoctorIdFromUrl();
+  if (!doctorId) {
+    showSlotsError("Missing doctor id in URL.");
     return;
   }
 
-  // UI: prevent double clicks
-  confirmBtn.disabled = true;
-  confirmBtn.textContent = "Booking...";
+  // Default date = today
+  dateInput.valueAsDate = new Date();
 
-  try {
-    const result = await apiFetch("/appointments", {
-      method: "POST",
-      auth: true,
-      body: {
-        doctorId,
-        slotId: selectedSlotId
-      }
-    });
+  loadSlotsBtn.addEventListener("click", loadSlots);
+  confirmBtn.addEventListener("click", confirmBooking);
 
-    bookMsg.textContent = `✅ ${result.message}`;
-    bookMsg.classList.remove("d-none");
-
-    // Reset selection (user must select again)
-    selectedSlotId = null;
-
-    // Refresh slots after booking (booked slot should disappear)
-    await loadSlots();
-  } catch (e) {
-    showSlotsError(e.message);
-  } finally {
-    confirmBtn.textContent = "Confirm";
-    // Enable confirm only if a slot is currently selected (usually false after booking)
-    confirmBtn.disabled = !selectedSlotId;
-  }
-}
-
-// ====== Events ======
-loadSlotsBtn.addEventListener("click", loadSlots);
-confirmBtn.addEventListener("click", bookSelectedSlot);
-
-// ====== Init ======
-loadDoctor().then(loadSlots);
+  loadDoctor();
+})();

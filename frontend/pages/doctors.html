@@ -2,77 +2,132 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+
+  <!-- Make layout responsive -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>Doctors - ClinicBooking</title>
 
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Project CSS -->
   <link href="../css/main.css" rel="stylesheet">
 </head>
 
 <body class="cb-bg">
+
+  <!-- App container -->
   <div class="cb-shell">
 
-    <!-- Top bar -->
+    <!-- Top Navigation -->
     <header class="d-flex align-items-center justify-content-between pt-3 px-3">
+
+      <!-- Back button -->
       <a class="btn cb-icon-btn" href="home.html" title="Back">
         <i class="bi bi-chevron-left"></i>
       </a>
 
+      <!-- Page title -->
       <div class="fw-semibold" id="pageTitle">Doctors</div>
 
+      <!-- Filter icon (UI only for now) -->
       <button class="btn cb-icon-btn" type="button" title="Filter">
         <i class="bi bi-sliders"></i>
       </button>
+
     </header>
 
-    <!-- Search + Filter -->
+    <!-- Search + Filters -->
     <section class="px-3 mt-3">
+
+      <!-- Search box -->
       <div class="cb-search">
         <i class="bi bi-search cb-search-icon"></i>
-        <input id="searchInput" class="cb-search-input" placeholder="Search doctor name..." />
+
+        <input
+          id="searchInput"
+          class="cb-search-input"
+          placeholder="Search doctor name..."
+        />
       </div>
 
+      <!-- Service filter -->
       <div class="d-flex align-items-center gap-2 mt-3">
+
         <select id="serviceSelect" class="form-select form-select-sm">
           <option value="">All Services</option>
         </select>
 
-        <button id="applyBtn" class="btn btn-primary btn-sm px-3">Apply</button>
+        <button id="applyBtn" class="btn btn-primary btn-sm px-3">
+          Apply
+        </button>
+
       </div>
 
+      <!-- Error message -->
       <div id="errorBox" class="alert alert-danger d-none mt-3"></div>
+
     </section>
 
-    <!-- Doctors list -->
+    <!-- Doctors List -->
     <section class="px-3 mt-4 mb-5">
+
       <div class="d-flex justify-content-between align-items-center mb-2">
+
         <h2 class="cb-section-title m-0">Doctors</h2>
+
+        <!-- Result count -->
         <span class="text-muted small" id="resultCount"></span>
+
       </div>
 
-      <div id="doctorsList" class="d-flex flex-column gap-3">
-        <!-- filled by JS -->
+      <!-- Responsive grid -->
+      <div id="doctorsList" class="row g-3">
+
+        <!-- Doctors will be inserted by JS -->
+
       </div>
 
+      <!-- Empty state -->
       <div id="emptyBox" class="alert alert-info d-none mt-3">
         No doctors found.
       </div>
+
     </section>
 
-    <!-- Bottom nav -->
+    <!-- Bottom Navigation -->
     <nav class="cb-bottom-nav">
-      <a class="cb-nav-item" href="home.html"><i class="bi bi-house"></i></a>
-      <a class="cb-nav-item active" href="doctors.html"><i class="bi bi-people-fill"></i></a>
-      <a class="cb-nav-item" href="#"><i class="bi bi-heart"></i></a>
-      <a class="cb-nav-item" href="my-appointments.html"><i class="bi bi-person"></i></a>
+
+      <a class="cb-nav-item" href="home.html">
+        <i class="bi bi-house"></i>
+      </a>
+
+      <a class="cb-nav-item active" href="doctors.html">
+        <i class="bi bi-people-fill"></i>
+      </a>
+
+      <a class="cb-nav-item" href="#">
+        <i class="bi bi-heart"></i>
+      </a>
+
+      <a class="cb-nav-item" href="my-appointments.html">
+        <i class="bi bi-person"></i>
+      </a>
+
     </nav>
 
   </div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
   <script src="../js/config.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/doctors.js"></script>
+
 </body>
 </html>
