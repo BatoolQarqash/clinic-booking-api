@@ -1,7 +1,9 @@
 // frontend/js/doctor-details.js
 
 (() => {
-  // ---------- DOM references ----------
+  /* --------------------------------------------------
+     DOM references
+  -------------------------------------------------- */
   const heroImg = document.getElementById("doctorHeroImg");
   const doctorName = document.getElementById("doctorName");
   const doctorTitle = document.getElementById("doctorTitle");
@@ -12,92 +14,98 @@
 
   const dateInput = document.getElementById("dateInput");
   const loadSlotsBtn = document.getElementById("loadSlotsBtn");
-  const slotsWrap = document.getElementById("slotsWrap");
+
   const slotsError = document.getElementById("slotsError");
   const slotsLoading = document.getElementById("slotsLoading");
+  const slotsWrap = document.getElementById("slotsWrap");
 
   const confirmBtn = document.getElementById("confirmBtn");
   const bookMsg = document.getElementById("bookMsg");
 
-  // ---------- State ----------
-  let doctorId = null;
+
+  /* --------------------------------------------------
+     Page state
+  -------------------------------------------------- */
+  const doctorId = getQueryInt("id"); // ✅ from utils.session.js
   let selectedSlotId = null;
 
-  /**
-   * Require user authentication.
-   * Redirects to login if token is missing.
-   */
-  function requireAuth() {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) window.location.href = "login.html";
-  }
+
+  /* --------------------------------------------------
+     Small UI helpers (wrap shared utilities)
+  -------------------------------------------------- */
 
   /**
-   * Read doctor id from URL query string.
-   * Example: doctor-details.html?id=3
-   * @returns {number|null}
-   */
-  function getDoctorIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const id = parseInt(params.get("id"), 10);
-    return Number.isFinite(id) ? id : null;
-  }
-
-  /**
-   * Show a warning alert (used for slot loading issues).
+   * Show a warning message related to slots.
+   * We keep this wrapper so the rest of the code stays readable.
    * @param {string} msg
    */
   function showSlotsError(msg) {
-    slotsError.textContent = msg;
-    slotsError.classList.remove("d-none");
+    showAlert(slotsError, "warning", msg); // ✅ from utils.ui.js
   }
 
   /**
-   * Hide slot error alert.
+   * Hide slot error message.
    */
   function hideSlotsError() {
-    slotsError.textContent = "";
-    slotsError.classList.add("d-none");
+    hideAlert(slotsError);
   }
 
   /**
-   * Show a success message after booking.
+   * Show booking success message.
    * @param {string} msg
    */
   function showBookingMessage(msg) {
-    bookMsg.textContent = msg;
-    bookMsg.classList.remove("d-none");
+    showAlert(bookMsg, "success", msg);
   }
 
   /**
    * Hide booking message.
    */
   function hideBookingMessage() {
-    bookMsg.textContent = "";
-    bookMsg.classList.add("d-none");
+    hideAlert(bookMsg);
   }
 
   /**
-   * Set doctor hero image safely.
-   * Supports both: imageUrl (camelCase) and ImageUrl (PascalCase).
+   * Toggle slots loading indicator + disable load button.
+   * @param {boolean} isLoading
+   */
+  function setSlotsLoading(isLoading) {
+    if (isLoading) {
+      slotsLoading.classList.remove("d-none");
+      setButtonLoading(loadSlotsBtn, true, "Loading..."); // ✅ from utils.ui.js
+    } else {
+      slotsLoading.classList.add("d-none");
+      setButtonLoading(loadSlotsBtn, false);
+    }
+  }
+
+
+  /* --------------------------------------------------
+     Doctor rendering
+  -------------------------------------------------- */
+
+  /**
+   * Safely set the hero image.
+   * Supports both imageUrl (camelCase) and ImageUrl (PascalCase).
    * @param {any} doctor
    */
   function setDoctorImage(doctor) {
     const img =
-      doctor.imageUrl ||
-      doctor.ImageUrl || // ✅ very important (backend may return PascalCase)
+      doctor?.imageUrl ||
+      doctor?.ImageUrl ||
       "../assets/img/doctor-placeholder.png";
 
     heroImg.src = img;
 
-    // If the image fails, fallback to placeholder
+    // Fallback if image fails to load
     heroImg.onerror = () => {
       heroImg.src = "../assets/img/doctor-placeholder.png";
     };
   }
 
   /**
-   * Render doctor details into the UI.
+   * Render doctor fields into the UI.
+   * Supports both camelCase and PascalCase fields from .NET JSON.
    * @param {any} doctor
    */
   function renderDoctor(doctor) {
@@ -112,9 +120,11 @@
   }
 
   /**
-   * Load doctor data from backend.
+   * Load doctor info from backend.
    */
   async function loadDoctor() {
+    hideSlotsError();
+
     try {
       const doctor = await apiFetch(`/doctors/${doctorId}`);
       renderDoctor(doctor);
@@ -123,11 +133,18 @@
     }
   }
 
+
+  /* --------------------------------------------------
+     Slots
+  -------------------------------------------------- */
+
   /**
-   * Format time label from ISO (slot start time).
+   * Format an ISO datetime into "HH:mm" (local time).
    * @param {string} iso
+   * @returns {string}
    */
   function formatTime(iso) {
+    if (!iso) return "--:--";
     const d = new Date(iso);
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
@@ -135,13 +152,21 @@
   }
 
   /**
-   * Render available slots as clickable pills.
+   * Clear current slot selection.
+   */
+  function resetSlotSelection() {
+    selectedSlotId = null;
+    confirmBtn.disabled = true;
+    slotsWrap.querySelectorAll(".cb-slot-btn").forEach(b => b.classList.remove("active"));
+  }
+
+  /**
+   * Render available slots as buttons (pills).
    * @param {Array} slots
    */
   function renderSlots(slots) {
     slotsWrap.innerHTML = "";
-    selectedSlotId = null;
-    confirmBtn.disabled = true;
+    resetSlotSelection();
 
     if (!slots || slots.length === 0) {
       showSlotsError("No available slots for this date.");
@@ -149,20 +174,23 @@
     }
 
     slots.forEach(s => {
+      const slotId = s.id || s.Id;
+      const start = s.startTime || s.StartTime;
+
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "cb-slot-btn";
-      btn.textContent = formatTime(s.startTime || s.StartTime);
+      btn.textContent = formatTime(start);
 
       btn.addEventListener("click", () => {
-        // Remove active from all buttons
+        // Remove active state from all
         slotsWrap.querySelectorAll(".cb-slot-btn").forEach(b => b.classList.remove("active"));
 
-        // Set this as active
+        // Set current active
         btn.classList.add("active");
 
         // Save selection
-        selectedSlotId = s.id || s.Id;
+        selectedSlotId = slotId;
         confirmBtn.disabled = false;
       });
 
@@ -171,11 +199,12 @@
   }
 
   /**
-   * Load available slots for selected date.
+   * Load available slots for the selected date.
    */
   async function loadSlots() {
     hideSlotsError();
     hideBookingMessage();
+    resetSlotSelection();
 
     const date = dateInput.value;
     if (!date) {
@@ -183,10 +212,8 @@
       return;
     }
 
-    loadSlotsBtn.disabled = true;
-    slotsLoading.classList.remove("d-none");
+    setSlotsLoading(true);
     slotsWrap.innerHTML = "";
-    confirmBtn.disabled = true;
 
     try {
       const slots = await apiFetch(`/doctors/${doctorId}/slots?date=${date}`);
@@ -194,17 +221,21 @@
     } catch (e) {
       showSlotsError(e.message);
     } finally {
-      loadSlotsBtn.disabled = false;
-      slotsLoading.classList.add("d-none");
+      setSlotsLoading(false);
     }
   }
 
+
+  /* --------------------------------------------------
+     Booking
+  -------------------------------------------------- */
+
   /**
-   * Confirm booking for the selected slot.
+   * Confirm appointment booking for selected slot.
    */
   async function confirmBooking() {
-    hideBookingMessage();
     hideSlotsError();
+    hideBookingMessage();
 
     if (!selectedSlotId) {
       showSlotsError("Please select a slot first.");
@@ -224,18 +255,25 @@
       });
 
       showBookingMessage(res?.message || "Appointment booked successfully!");
-      // Refresh slots to show updated availability
+
+      // Reload slots to reflect the new booking (slot becomes unavailable)
       await loadSlots();
+
     } catch (e) {
       showSlotsError(e.message);
       confirmBtn.disabled = false;
     }
   }
 
-  // ---------- Init ----------
+
+  /* --------------------------------------------------
+     Init
+  -------------------------------------------------- */
+
+  // ✅ Use shared auth guard
   requireAuth();
 
-  doctorId = getDoctorIdFromUrl();
+  // Validate doctor id from URL
   if (!doctorId) {
     showSlotsError("Missing doctor id in URL.");
     return;
@@ -244,8 +282,10 @@
   // Default date = today
   dateInput.valueAsDate = new Date();
 
+  // Events
   loadSlotsBtn.addEventListener("click", loadSlots);
   confirmBtn.addEventListener("click", confirmBooking);
 
+  // Initial load
   loadDoctor();
 })();

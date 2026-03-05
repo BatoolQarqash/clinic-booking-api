@@ -1,41 +1,58 @@
 // frontend/js/my-appointments.js
 
 (() => {
-  /**
-   * Ensure user is logged in before accessing this page.
-   */
-  function requireAuth() {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) window.location.href = "login.html";
-  }
+  /* --------------------------------------------------
+     Auth Guard
+  -------------------------------------------------- */
+  requireAuth();
+
+  /* --------------------------------------------------
+     DOM references
+  -------------------------------------------------- */
+  const apptList = document.getElementById("apptList"); // ideally: class="row g-3"
+  const emptyBox = document.getElementById("emptyBox");
+  const loadingBox = document.getElementById("loadingBox");
+  const pageMsg = document.getElementById("pageMsg");
+  const refreshBtn = document.getElementById("refreshBtn");
+
+
+  /* --------------------------------------------------
+     UI helpers
+  -------------------------------------------------- */
 
   /**
-   * Show a message alert.
+   * Show page-level alert message.
    * @param {"success"|"danger"|"warning"|"info"} type
    * @param {string} text
    */
   function showMessage(type, text) {
-    pageMsg.className = `alert alert-${type}`;
-    pageMsg.textContent = text;
-    pageMsg.classList.remove("d-none");
+    showAlert(pageMsg, type, text);
   }
 
-  /**
-   * Hide the message alert.
-   */
+  /** Hide page-level alert message. */
   function hideMessage() {
-    pageMsg.textContent = "";
-    pageMsg.classList.add("d-none");
+    hideAlert(pageMsg);
   }
 
   /**
-   * Convert ISO datetime string to a readable local string.
-   * @param {string} iso
+   * Get Bootstrap badge class based on appointment status.
+   * @param {string} status
+   * @returns {string}
    */
-  function toLocal(iso) {
-    if (!iso) return "—";
-    return new Date(iso).toLocaleString();
+  function statusBadgeClass(status) {
+    const s = (status || "").toLowerCase();
+
+    if (s === "booked") return "bg-success";
+    if (s === "cancelled") return "bg-danger";
+    if (s === "completed") return "bg-primary";
+
+    return "bg-secondary";
   }
+
+
+  /* --------------------------------------------------
+     Render appointments
+  -------------------------------------------------- */
 
   /**
    * Render appointments as responsive grid cards.
@@ -51,42 +68,49 @@
     }
 
     items.forEach(a => {
-      const status = (a.status || "").toLowerCase();
+      const status = a.status || a.Status || "—";
+      const badgeClass = statusBadgeClass(status);
 
-      const badgeClass =
-        status === "booked" ? "bg-success" :
-        status === "cancelled" ? "bg-danger" :
-        status === "completed" ? "bg-primary" :
-        "bg-secondary";
+      const doctor = a.doctor || a.Doctor || null;
+      const slot = a.slot || a.Slot || null;
+
+      const doctorName = doctor?.fullName || doctor?.FullName || "Doctor";
+      const clinicName = doctor?.clinicName || doctor?.ClinicName || "";
+      const doctorId = doctor?.id || doctor?.Id;
+
+      const startTime = slot?.startTime || slot?.StartTime;
+      const endTime = slot?.endTime || slot?.EndTime;
+
+      const apptId = a.id || a.Id;
 
       const col = document.createElement("div");
-      col.className = "col-12 col-md-6 col-lg-4"; // grid on desktop
+      col.className = "col-12 col-md-6 col-lg-4";
 
       col.innerHTML = `
         <div class="cb-appt-card">
           <div class="d-flex justify-content-between align-items-start">
             <div>
-              <div class="fw-semibold">${a.doctor?.fullName || "Doctor"}</div>
-              <div class="text-muted small">${a.doctor?.clinicName || ""}</div>
+              <div class="fw-semibold">${doctorName}</div>
+              <div class="text-muted small">${clinicName}</div>
             </div>
-            <span class="badge ${badgeClass} text-uppercase">${a.status || "—"}</span>
+            <span class="badge ${badgeClass} text-uppercase">${status}</span>
           </div>
 
           <div class="mt-2 text-muted small">
             <i class="bi bi-clock"></i>
-            ${toLocal(a.slot?.startTime)} → ${toLocal(a.slot?.endTime)}
+            ${formatDateTime(startTime)} → ${formatDateTime(endTime)}
           </div>
 
           <div class="mt-3 d-flex justify-content-end gap-2">
             <a class="btn btn-outline-primary btn-sm"
-               href="doctor-details.html?id=${a.doctor?.id}">
+               href="doctor-details.html?id=${doctorId}">
               View Doctor
             </a>
 
             <button class="btn btn-danger btn-sm"
                     data-action="cancel"
-                    data-id="${a.id}"
-                    ${status !== "booked" ? "disabled" : ""}>
+                    data-id="${apptId}"
+                    ${String(status).toLowerCase() !== "booked" ? "disabled" : ""}>
               Cancel
             </button>
           </div>
@@ -97,11 +121,17 @@
     });
   }
 
+
+  /* --------------------------------------------------
+     Data loading
+  -------------------------------------------------- */
+
   /**
-   * Load appointments from backend.
+   * Load the user's appointments from backend.
    */
   async function loadAppointments() {
     hideMessage();
+
     loadingBox.classList.remove("d-none");
     apptList.innerHTML = "";
     emptyBox.classList.add("d-none");
@@ -116,6 +146,11 @@
     }
   }
 
+
+  /* --------------------------------------------------
+     Cancel appointment
+  -------------------------------------------------- */
+
   /**
    * Cancel an appointment by id.
    * @param {string|number} apptId
@@ -126,9 +161,8 @@
 
     if (!confirm("Are you sure you want to cancel this appointment?")) return;
 
-    btn.disabled = true;
-    const oldText = btn.textContent;
-    btn.textContent = "Cancelling...";
+    // Show loading state on this button
+    setButtonLoading(btn, true, "Cancelling...");
 
     try {
       const res = await apiFetch(`/appointments/${apptId}/cancel`, {
@@ -138,29 +172,30 @@
 
       showMessage("success", res?.message || "Cancelled successfully.");
       await loadAppointments();
+
     } catch (e) {
       showMessage("warning", e.message);
-      btn.disabled = false;
-      btn.textContent = oldText;
+      setButtonLoading(btn, false);
     }
   }
 
-  // ---------- Init ----------
-  requireAuth();
 
-  const apptList = document.getElementById("apptList"); // should be "row g-3" in HTML
-  const emptyBox = document.getElementById("emptyBox");
-  const loadingBox = document.getElementById("loadingBox");
-  const pageMsg = document.getElementById("pageMsg");
-  const refreshBtn = document.getElementById("refreshBtn");
+  /* --------------------------------------------------
+     Init
+  -------------------------------------------------- */
 
-  // Event delegation (cleaner than binding per button globally)
+  // Event delegation (one listener for all cancel buttons)
   apptList.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-action='cancel']");
     if (!btn) return;
+
     cancelAppointment(btn.dataset.id, btn);
   });
 
+  // Refresh button
   refreshBtn.addEventListener("click", loadAppointments);
+
+  // Initial load
   loadAppointments();
+
 })();

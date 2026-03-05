@@ -1,68 +1,87 @@
 // frontend/js/auth.js
 
 (() => {
+  /* --------------------------------------------------
+     DOM references (optional per page)
+     - login page uses login fields
+     - register page uses register fields
+  -------------------------------------------------- */
+  const loginBtn = document.getElementById("loginBtn");
+  const registerBtn = document.getElementById("registerBtn");
+
+  const loginErrorBox = document.getElementById("loginError");
+  const registerErrorBox = document.getElementById("registerError");
+
+
+  /* --------------------------------------------------
+     UI helpers
+  -------------------------------------------------- */
+
   /**
-   * Show an error box with a message.
-   * @param {string} boxId - DOM element id of the error box
-   * @param {string} msg - Error message to display
+   * Show login error message in Bootstrap alert box.
+   * @param {string} msg
    */
-  function showError(boxId, msg) {
-    const box = document.getElementById(boxId);
-    if (!box) return;
-    box.textContent = msg;
-    box.classList.remove("d-none");
+  function showLoginError(msg) {
+    showAlert(loginErrorBox, "danger", msg);
+  }
+
+  /** Hide login error alert. */
+  function hideLoginError() {
+    hideAlert(loginErrorBox);
   }
 
   /**
-   * Hide an error box.
-   * @param {string} boxId - DOM element id of the error box
+   * Show register error message in Bootstrap alert box.
+   * @param {string} msg
    */
-  function hideError(boxId) {
-    const box = document.getElementById(boxId);
-    if (!box) return;
-    box.textContent = "";
-    box.classList.add("d-none");
+  function showRegisterError(msg) {
+    showAlert(registerErrorBox, "danger", msg);
   }
 
-  /**
-   * Save auth session data in localStorage.
-   * @param {{token:string, role:string, id:number, fullName:string, email:string}} result
-   */
-  function saveSession(result) {
-    localStorage.setItem(TOKEN_KEY, result.token);
-    localStorage.setItem(ROLE_KEY, result.role);
-    localStorage.setItem(USER_KEY, JSON.stringify({
-      id: result.id,
-      fullName: result.fullName,
-      email: result.email
-    }));
+  /** Hide register error alert. */
+  function hideRegisterError() {
+    hideAlert(registerErrorBox);
   }
 
+
+  /* --------------------------------------------------
+     Navigation
+  -------------------------------------------------- */
+
   /**
-   * Redirect user after login based on their role.
+   * Redirect user after successful login based on role.
    * Admin -> admin-dashboard.html
    * User  -> home.html
    * @param {string} role
    */
   function redirectByRole(role) {
-    window.location.href = role === "Admin"
+    window.location.href = (role === "Admin")
       ? "admin-dashboard.html"
       : "home.html";
   }
 
+
+  /* --------------------------------------------------
+     Login
+  -------------------------------------------------- */
+
   /**
-   * Handle login form submit.
+   * Handle login button click.
+   * Reads inputs, calls API, saves session, then redirects.
    */
   async function handleLogin() {
-    hideError("loginError");
+    hideLoginError();
 
     const email = document.getElementById("loginEmail")?.value.trim();
     const password = document.getElementById("loginPassword")?.value;
 
     if (!email || !password) {
-      showError("loginError", "Please enter email and password.");
+      showLoginError("Please enter email and password.");
       return;
     }
+
+    // Show loading state on the button
+    if (loginBtn) setButtonLoading(loginBtn, true, "Signing in...");
 
     try {
       const result = await apiFetch("/auth/login", {
@@ -70,27 +89,49 @@
         body: { email, password }
       });
 
-      saveSession(result);
-      redirectByRole(result.role);
+      // Support both role/Role just in case
+      const role = result.role || result.Role || "User";
+
+      // ✅ use shared session helper from utils.session.js
+      saveSession({
+        token: result.token || result.Token,
+        role,
+        id: result.id || result.Id,
+        fullName: result.fullName || result.FullName,
+        email: result.email || result.Email
+      });
+
+      redirectByRole(role);
+
     } catch (e) {
-      showError("loginError", e.message);
+      showLoginError(e.message);
+    } finally {
+      if (loginBtn) setButtonLoading(loginBtn, false);
     }
   }
 
+
+  /* --------------------------------------------------
+     Register
+  -------------------------------------------------- */
+
   /**
-   * Handle register form submit.
+   * Handle register button click.
+   * Registers user then auto-login (based on API response).
    */
   async function handleRegister() {
-    hideError("registerError");
+    hideRegisterError();
 
     const fullName = document.getElementById("regFullName")?.value.trim();
     const email = document.getElementById("regEmail")?.value.trim();
     const password = document.getElementById("regPassword")?.value;
 
     if (!fullName || !email || !password) {
-      showError("registerError", "Please fill in all fields.");
+      showRegisterError("Please fill in all fields.");
       return;
     }
+
+    if (registerBtn) setButtonLoading(registerBtn, true, "Creating account...");
 
     try {
       const result = await apiFetch("/auth/register", {
@@ -98,15 +139,36 @@
         body: { fullName, email, password }
       });
 
-      // Auto-login after register
-      saveSession(result);
+      const role = result.role || result.Role || "User";
+
+      // ✅ use shared session helper
+      saveSession({
+        token: result.token || result.Token,
+        role,
+        id: result.id || result.Id,
+        fullName: result.fullName || result.FullName,
+        email: result.email || result.Email
+      });
+
+      // After register: go to home (MVP flow)
       window.location.href = "home.html";
+
     } catch (e) {
-      showError("registerError", e.message);
+      showRegisterError(e.message);
+    } finally {
+      if (registerBtn) setButtonLoading(registerBtn, false);
     }
   }
 
-  // Bind buttons if present on the page
-  document.getElementById("loginBtn")?.addEventListener("click", handleLogin);
-  document.getElementById("registerBtn")?.addEventListener("click", handleRegister);
+
+  /* --------------------------------------------------
+     Events
+  -------------------------------------------------- */
+
+  // Bind login if the button exists on this page
+  loginBtn?.addEventListener("click", handleLogin);
+
+  // Bind register if the button exists on this page
+  registerBtn?.addEventListener("click", handleRegister);
+
 })();

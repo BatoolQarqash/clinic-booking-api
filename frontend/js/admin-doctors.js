@@ -1,194 +1,274 @@
 // frontend/js/admin-doctors.js
-requireAdmin();
-qs("logoutBtn").addEventListener("click", logout);
 
-const modalEl = qs("doctorModal");
-const modal = new bootstrap.Modal(modalEl);
+(() => {
+  requireAdmin();
 
-let allServices = [];
-let allDoctors = [];
+  // DOM
+  const pageMsg = document.getElementById("pageMsg");
+  const qInput = document.getElementById("qInput");
+  const serviceSelect = document.getElementById("serviceSelect");
+  const searchBtn = document.getElementById("searchBtn");
+  const newBtn = document.getElementById("newBtn");
 
-qs("applyBtn").addEventListener("click", renderFiltered);
-qs("newDoctorBtn").addEventListener("click", () => openModalForCreate());
-qs("saveBtn").addEventListener("click", saveDoctor);
+  const rows = document.getElementById("rows");
+  const emptyBox = document.getElementById("emptyBox");
 
-function fillServices(selectEl, includeAll = false) {
-  if (includeAll) selectEl.innerHTML = `<option value="">All services</option>`;
-  else selectEl.innerHTML = "";
+  // Modal DOM
+  const modalEl = document.getElementById("doctorModal");
+  const modal = new bootstrap.Modal(modalEl);
+  const modalTitle = document.getElementById("modalTitle");
+  const modalMsg = document.getElementById("modalMsg");
 
-  allServices.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = s.name;
-    selectEl.appendChild(opt);
-  });
-}
+  const fullNameInput = document.getElementById("fullNameInput");
+  const titleInput = document.getElementById("titleInput");
+  const clinicInput = document.getElementById("clinicInput");
+  const modalServiceSelect = document.getElementById("modalServiceSelect");
+  const feeInput = document.getElementById("feeInput");
+  const ratingInput = document.getElementById("ratingInput");
+  const imageUrlInput = document.getElementById("imageUrlInput");
+  const saveBtn = document.getElementById("saveBtn");
 
-function renderFiltered() {
-  hideBox("pageError");
-  hideBox("pageOk");
+  // State
+  let editingId = null;
+  let cachedServices = [];
 
-  const q = (qs("q").value || "").trim().toLowerCase();
-  const serviceId = qs("serviceId").value;
+  function showPageMsg(type, text) { showAlert(pageMsg, type, text); }
+  function hidePageMsg() { hideAlert(pageMsg); }
 
-  let items = [...allDoctors];
-  if (q) items = items.filter(d => (d.fullName || "").toLowerCase().includes(q));
-  if (serviceId) items = items.filter(d => String(d.serviceId) === String(serviceId));
+  function showModalMsg(type, text) { showAlert(modalMsg, type, text); }
+  function hideModalMsg() { hideAlert(modalMsg); }
 
-  renderRows(items);
-}
+  /**
+   * Load services for dropdowns (filters + modal).
+   */
+  async function loadServices() {
+    try {
+      const services = await apiFetch("/services");
+      cachedServices = services || [];
 
-function renderRows(items) {
-  const tbody = qs("rows");
-  tbody.innerHTML = "";
+      // Filter dropdown
+      serviceSelect.innerHTML = `<option value="">All Services</option>`;
+      // Modal dropdown
+      modalServiceSelect.innerHTML = `<option value="">Select service</option>`;
 
-  items.forEach(d => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${d.id}</td>
-      <td>
-        <div class="fw-semibold">${d.fullName}</div>
-        <div class="text-muted small">${d.title || "—"}</div>
-      </td>
-      <td>${d.serviceName || "—"}</td>
-      <td>$${d.fee}</td>
-      <td>${d.rating ?? "—"}</td>
-      <td>${d.isActive ? `<span class="badge bg-success">Yes</span>` : `<span class="badge bg-secondary">No</span>`}</td>
-      <td class="text-end">
-        <button class="btn btn-outline-primary btn-sm me-1" data-edit="${d.id}">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button class="btn btn-outline-danger btn-sm" data-del="${d.id}">
-          <i class="bi bi-trash"></i>
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+      cachedServices.forEach(s => {
+        const id = s.id || s.Id;
+        const name = s.name || s.Name;
 
-  tbody.querySelectorAll("[data-edit]").forEach(btn => {
-    btn.addEventListener("click", () => openModalForEdit(btn.dataset.edit));
-  });
+        const opt1 = document.createElement("option");
+        opt1.value = String(id);
+        opt1.textContent = name;
+        serviceSelect.appendChild(opt1);
 
-  tbody.querySelectorAll("[data-del]").forEach(btn => {
-    btn.addEventListener("click", () => deleteDoctor(btn.dataset.del));
-  });
-}
-
-function openModalForCreate() {
-  hideBox("modalError");
-  setText("modalTitle", "New Doctor");
-
-  qs("doctorId").value = "";
-  qs("fullName").value = "";
-  qs("title").value = "";
-  qs("bio").value = "";
-  qs("clinicName").value = "";
-  qs("imageUrl").value = "";
-  qs("fee").value = "0";
-  qs("rating").value = "";
-  qs("isActive").checked = true;
-
-  fillServices(qs("serviceIdModal"), false);
-  qs("serviceIdModal").value = allServices[0]?.id ?? "";
-
-  modal.show();
-}
-
-async function openModalForEdit(id) {
-  hideBox("modalError");
-  setText("modalTitle", `Edit Doctor #${id}`);
-
-  try {
-    const d = await apiFetch(`/admin/doctors/${id}`, { auth: true });
-
-    qs("doctorId").value = d.id;
-    qs("fullName").value = d.fullName || "";
-    qs("title").value = d.title || "";
-    qs("bio").value = d.bio || "";
-    qs("clinicName").value = d.clinicName || "";
-    qs("imageUrl").value = d.imageUrl || "";
-    qs("fee").value = d.fee ?? 0;
-    qs("rating").value = d.rating ?? "";
-    qs("isActive").checked = !!d.isActive;
-
-    fillServices(qs("serviceIdModal"), false);
-    qs("serviceIdModal").value = d.serviceId;
-
-    modal.show();
-  } catch (e) {
-    showBox("pageError", e.message);
-  }
-}
-
-async function saveDoctor() {
-  hideBox("modalError");
-  hideBox("pageError");
-  hideBox("pageOk");
-
-  const id = qs("doctorId").value;
-
-  // Short validation in UI (backend still validates)
-  const fullName = qs("fullName").value.trim();
-  if (!fullName) {
-    showBox("modalError", "Full Name is required.");
-    return;
+        const opt2 = document.createElement("option");
+        opt2.value = String(id);
+        opt2.textContent = name;
+        modalServiceSelect.appendChild(opt2);
+      });
+    } catch {
+      // Not fatal
+    }
   }
 
-  const body = {
-    fullName,
-    title: qs("title").value.trim() || null,
-    bio: qs("bio").value.trim() || null,
-    imageUrl: qs("imageUrl").value.trim() || null,
-    clinicName: qs("clinicName").value.trim() || null,
-    fee: Number(qs("fee").value || 0),
-    rating: qs("rating").value === "" ? null : Number(qs("rating").value),
-    serviceId: Number(qs("serviceIdModal").value),
-    isActive: qs("isActive").checked
-  };
+  /**
+   * Build query for admin doctors endpoint.
+   */
+  function buildDoctorsUrl() {
+    const q = qInput.value.trim();
+    const serviceId = serviceSelect.value;
 
-  try {
-    if (!id) {
-      await apiFetch("/admin/doctors", { method: "POST", body, auth: true });
-      showBox("pageOk", "Doctor created.", "success");
-    } else {
-      await apiFetch(`/admin/doctors/${id}`, { method: "PUT", body, auth: true });
-      showBox("pageOk", "Doctor updated.", "success");
+    const qs = new URLSearchParams();
+    if (q) qs.set("q", q);
+    if (serviceId) qs.set("serviceId", serviceId);
+
+    const s = qs.toString();
+    return s ? `/admin/doctors?${s}` : "/admin/doctors";
+  }
+
+  /**
+   * Render doctors table.
+   */
+  function renderDoctors(items) {
+    rows.innerHTML = "";
+    emptyBox.classList.add("d-none");
+
+    if (!items || items.length === 0) {
+      emptyBox.classList.remove("d-none");
+      return;
     }
 
-    modal.hide();
-    await loadAll();
-  } catch (e) {
-    showBox("modalError", e.message);
+    items.forEach(d => {
+      const id = d.id || d.Id;
+      const name = d.fullName || d.FullName || "Doctor";
+      const serviceName = d.service?.name || d.Service?.Name || "—";
+      const fee = d.fee ?? d.Fee ?? "—";
+      const rating = d.rating ?? d.Rating ?? "—";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td>
+          <div class="fw-semibold">${name}</div>
+          <div class="text-muted small">${d.clinicName || d.ClinicName || ""}</div>
+        </td>
+        <td>${serviceName}</td>
+        <td>$${fee}</td>
+        <td>${rating}</td>
+        <td class="text-end">
+          <button class="btn btn-outline-primary btn-sm" data-action="edit" data-id="${id}">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-outline-danger btn-sm" data-action="delete" data-id="${id}">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      `;
+      rows.appendChild(tr);
+    });
   }
-}
 
-async function deleteDoctor(id) {
-  hideBox("pageError");
-  hideBox("pageOk");
-
-  if (!confirm(`Delete doctor #${id}?`)) return;
-
-  try {
-    await apiFetch(`/admin/doctors/${id}`, { method: "DELETE", auth: true });
-    showBox("pageOk", "Doctor deleted.", "success");
-    await loadAll();
-  } catch (e) {
-    showBox("pageError", e.message);
+  /**
+   * Load doctors from backend.
+   */
+  async function loadDoctors() {
+    hidePageMsg();
+    try {
+      const items = await apiFetch(buildDoctorsUrl(), { auth: true });
+      renderDoctors(items);
+    } catch (e) {
+      showPageMsg("danger", e.message);
+    }
   }
-}
 
-async function loadAll() {
-  try {
-    allServices = await apiFetch("/services");
-    fillServices(qs("serviceId"), true);
-    fillServices(qs("serviceIdModal"), false);
+  /**
+   * Open modal for create.
+   */
+  function openCreateModal() {
+    editingId = null;
+    modalTitle.textContent = "Create Doctor";
+    hideModalMsg();
 
-    allDoctors = await apiFetch("/admin/doctors", { auth: true });
-    renderFiltered();
-  } catch (e) {
-    showBox("pageError", e.message);
+    fullNameInput.value = "";
+    titleInput.value = "";
+    clinicInput.value = "";
+    modalServiceSelect.value = "";
+    feeInput.value = "";
+    ratingInput.value = "";
+    imageUrlInput.value = "";
+
+    modal.show();
   }
-}
 
-loadAll();
+  /**
+   * Load doctor details for edit (admin endpoint).
+   */
+  async function openEditModal(id) {
+    editingId = id;
+    modalTitle.textContent = `Edit Doctor #${id}`;
+    hideModalMsg();
+
+    try {
+      const d = await apiFetch(`/admin/doctors/${id}`, { auth: true });
+
+      fullNameInput.value = d.fullName || d.FullName || "";
+      titleInput.value = d.title || d.Title || "";
+      clinicInput.value = d.clinicName || d.ClinicName || "";
+
+      const serviceId = d.serviceId || d.ServiceId || d.service?.id || d.Service?.Id || "";
+      modalServiceSelect.value = serviceId ? String(serviceId) : "";
+
+      feeInput.value = d.fee ?? d.Fee ?? "";
+      ratingInput.value = d.rating ?? d.Rating ?? "";
+      imageUrlInput.value = d.imageUrl || d.ImageUrl || "";
+
+      modal.show();
+    } catch (e) {
+      showPageMsg("danger", e.message);
+    }
+  }
+
+  /**
+   * Create or update doctor (upsert).
+   */
+  async function saveDoctor() {
+    hideModalMsg();
+
+    const payload = {
+      fullName: fullNameInput.value.trim(),
+      title: titleInput.value.trim(),
+      clinicName: clinicInput.value.trim(),
+      serviceId: modalServiceSelect.value ? parseInt(modalServiceSelect.value, 10) : null,
+      fee: feeInput.value ? parseFloat(feeInput.value) : 0,
+      rating: ratingInput.value ? parseFloat(ratingInput.value) : 0,
+      imageUrl: imageUrlInput.value.trim()
+    };
+
+    if (!payload.fullName || !payload.serviceId) {
+      showModalMsg("warning", "Full name and Service are required.");
+      return;
+    }
+
+    setButtonLoading(saveBtn, true, "Saving...");
+
+    try {
+      if (editingId) {
+        await apiFetch(`/admin/doctors/${editingId}`, {
+          method: "PUT",
+          auth: true,
+          body: payload
+        });
+        showPageMsg("success", "Doctor updated.");
+      } else {
+        await apiFetch("/admin/doctors", {
+          method: "POST",
+          auth: true,
+          body: payload
+        });
+        showPageMsg("success", "Doctor created.");
+      }
+
+      modal.hide();
+      await loadDoctors();
+
+    } catch (e) {
+      showModalMsg("danger", e.message);
+    } finally {
+      setButtonLoading(saveBtn, false);
+    }
+  }
+
+  /**
+   * Delete doctor.
+   */
+  async function deleteDoctor(id) {
+    hidePageMsg();
+
+    if (!confirm("Delete this doctor?")) return;
+
+    try {
+      await apiFetch(`/admin/doctors/${id}`, { method: "DELETE", auth: true });
+      showPageMsg("success", "Doctor deleted.");
+      await loadDoctors();
+    } catch (e) {
+      showPageMsg("danger", e.message);
+    }
+  }
+
+  // Events
+  newBtn.addEventListener("click", openCreateModal);
+  searchBtn.addEventListener("click", loadDoctors);
+
+  rows.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+
+    const id = btn.dataset.id;
+    if (btn.dataset.action === "edit") openEditModal(id);
+    if (btn.dataset.action === "delete") deleteDoctor(id);
+  });
+
+  saveBtn.addEventListener("click", saveDoctor);
+
+  // Init
+  loadServices().then(loadDoctors);
+})();

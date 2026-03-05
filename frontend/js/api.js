@@ -3,11 +3,15 @@
 async function apiFetch(path, { method = "GET", body = null, auth = false } = {}) {
   const url = `${API_BASE}${path}`;
 
-  const headers = { "Accept": "application/json" };
+  const headers = { Accept: "application/json" };
   if (body !== null) headers["Content-Type"] = "application/json";
 
+  // Attach JWT token when auth is required
   if (auth) {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = (typeof getToken === "function")
+      ? getToken()
+      : localStorage.getItem(TOKEN_KEY);
+
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
@@ -26,7 +30,6 @@ async function apiFetch(path, { method = "GET", body = null, auth = false } = {}
   try { data = await res.json(); } catch {}
 
   if (!res.ok) {
-    // ✅ Support ProblemDetails + ValidationProblemDetails
     const validationErrors = data?.errors
       ? Object.values(data.errors).flat().join(" | ")
       : null;
@@ -35,7 +38,7 @@ async function apiFetch(path, { method = "GET", body = null, auth = false } = {}
       data?.message ||
       data?.detail ||
       validationErrors ||
-      data?.title ||                 // <- important for ValidationProblemDetails
+      data?.title ||
       `Request failed (${res.status})`;
 
     throw new Error(msg);

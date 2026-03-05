@@ -1,25 +1,16 @@
 // frontend/js/admin-dashboard.js
-requireAdmin();
 
-const me = getUserSafe();
-setText("adminName", me?.fullName ? `Welcome, ${me.fullName}` : "Welcome, Admin");
+(() => {
+  // Admin-only guard
+  requireAdmin();
 
-qs("logoutBtn").addEventListener("click", logout);
+  const adminName = document.getElementById("adminName");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-async function loadDashboard() {
-  hideBox("dashError");
+  // Show admin name from stored session
+  const user = getCurrentUser();
+  adminName.textContent = user?.fullName || "Admin";
 
-  try {
-    // Doctors count
-    const doctors = await apiFetch("/admin/doctors", { auth: true });
-    setText("doctorsCount", `${doctors.length} doctors`);
-
-    // Appointments total (uses metadata)
-    const appts = await apiFetch("/admin/appointments?page=1&pageSize=1", { auth: true });
-    setText("apptsTotal", `${appts.total} total`);
-  } catch (e) {
-    showBox("dashError", e.message, "danger");
-  }
-}
-
-loadDashboard();
+  // Logout clears session and returns to login
+  logoutBtn.addEventListener("click", () => logout());
+})();
