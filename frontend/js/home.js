@@ -145,11 +145,7 @@
       const rating = d.rating ?? d.Rating ?? "—";
 
       // Support both ImageUrl and imageUrl (backend vs frontend naming)
-      const img =
-        d.imageUrl ||
-        d.ImageUrl ||
-        "../assets/img/doctor-placeholder.png";
-
+      const img = resolveImageUrl(d.imageUrl || d.ImageUrl);
       const card = document.createElement("div");
       card.className = "cb-doctor-card";
 

@@ -90,11 +90,7 @@
    * @param {any} doctor
    */
   function setDoctorImage(doctor) {
-    const img =
-      doctor?.imageUrl ||
-      doctor?.ImageUrl ||
-      "../assets/img/doctor-placeholder.png";
-
+   const img = resolveImageUrl(doctor?.imageUrl || doctor?.ImageUrl);
     heroImg.src = img;
 
     // Fallback if image fails to load

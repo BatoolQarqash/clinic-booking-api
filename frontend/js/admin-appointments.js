@@ -3,6 +3,9 @@
 (() => {
   requireAdmin();
 
+  /* --------------------------------------------------
+     DOM references
+  -------------------------------------------------- */
   const pageMsg = document.getElementById("pageMsg");
 
   const statusSelect = document.getElementById("statusSelect");
@@ -20,48 +23,124 @@
   const nextBtn = document.getElementById("nextBtn");
   const pageInfo = document.getElementById("pageInfo");
 
-  function showMsg(type, text) { showAlert(pageMsg, type, text); }
-  function hideMsg() { hideAlert(pageMsg); }
+  /* --------------------------------------------------
+     State
+  -------------------------------------------------- */
+  let allAppointments = [];
+  let currentPage = 1;
+  const pageSize = 10;
 
-  // Pagination state
-  let page = getQueryInt("page") || 1;
-  let pageSize = getQueryInt("pageSize") || 10;
-
-  function readFiltersFromUrlIntoUi() {
-    statusSelect.value = getQueryParam("status") || "";
-    doctorIdInput.value = getQueryParam("doctorId") || "";
-    dateInput.value = getQueryParam("date") || "";
+  /* --------------------------------------------------
+     UI helpers
+  -------------------------------------------------- */
+  function showMsg(type, text) {
+    showAlert(pageMsg, type, text);
   }
 
-  function writeUiToUrl() {
-    setUrlParams({
-      page,
-      pageSize,
-      status: statusSelect.value,
-      doctorId: doctorIdInput.value.trim(),
-      date: dateInput.value
+  function hideMsg() {
+    hideAlert(pageMsg);
+  }
+
+  /**
+   * Convert any ISO/startTime to YYYY-MM-DD for exact date compare.
+   * @param {string} iso
+   * @returns {string}
+   */
+  function toDateOnly(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  /**
+   * Safely get appointments array from API response.
+   * Supports array OR paged object.
+   * @param {any} data
+   * @returns {Array}
+   */
+  function extractItems(data) {
+    if (Array.isArray(data)) return data;
+    return data?.items || data?.Items || [];
+  }
+
+  /* --------------------------------------------------
+     Loading
+  -------------------------------------------------- */
+
+  /**
+   * Load all appointments from backend once.
+   * We use a larger page size and filter on frontend
+   * because backend filter param names may differ.
+   */
+  async function loadAppointments() {
+    hideMsg();
+
+    try {
+      // Increase page size so admin can filter locally in MVP
+      const data = await apiFetch("/admin/appointments?page=1&pageSize=200", {
+        auth: true
+      });
+
+      allAppointments = extractItems(data);
+      currentPage = 1;
+      applyFiltersAndRender();
+    } catch (e) {
+      showMsg("danger", e.message);
+    }
+  }
+
+  /* --------------------------------------------------
+     Filtering + pagination
+  -------------------------------------------------- */
+
+  /**
+   * Filter cached appointments in frontend.
+   * @returns {Array}
+   */
+  function getFilteredAppointments() {
+    const selectedStatus = statusSelect.value.trim().toLowerCase();
+    const doctorIdValue = doctorIdInput.value.trim();
+    const selectedDate = dateInput.value; // format: YYYY-MM-DD
+
+    return allAppointments.filter(a => {
+      const status = String(a.status || a.Status || "").toLowerCase();
+
+      const doctor = a.doctor || a.Doctor || {};
+      const slot = a.slot || a.Slot || {};
+
+      const doctorId = String(doctor.id || doctor.Id || a.doctorId || a.DoctorId || "");
+      const slotStart = slot.startTime || slot.StartTime || "";
+      const slotDate = toDateOnly(slotStart);
+
+      const matchesStatus = !selectedStatus || status === selectedStatus;
+      const matchesDoctorId = !doctorIdValue || doctorId === doctorIdValue;
+      const matchesDate = !selectedDate || slotDate === selectedDate;
+
+      return matchesStatus && matchesDoctorId && matchesDate;
     });
   }
 
-  function buildUrl() {
-    const qs = new URLSearchParams();
-    qs.set("page", String(page));
-    qs.set("pageSize", String(pageSize));
-
-    if (statusSelect.value) qs.set("status", statusSelect.value);
-    if (doctorIdInput.value.trim()) qs.set("doctorId", doctorIdInput.value.trim());
-    if (dateInput.value) qs.set("date", dateInput.value);
-
-    return `/admin/appointments?${qs.toString()}`;
+  /**
+   * Return current page slice from filtered items.
+   * @param {Array} items
+   * @returns {Array}
+   */
+  function paginate(items) {
+    const start = (currentPage - 1) * pageSize;
+    return items.slice(start, start + pageSize);
   }
 
-  function render(data) {
+  /**
+   * Render table rows.
+   * @param {Array} items
+   * @param {number} total
+   */
+  function render(items, total) {
     rows.innerHTML = "";
     emptyBox.classList.add("d-none");
-
-    // Support both shapes: array OR paged object
-    const items = Array.isArray(data) ? data : (data.items || data.Items || []);
-    const total = data?.total ?? data?.Total ?? null;
 
     if (!items.length) {
       emptyBox.classList.remove("d-none");
@@ -69,20 +148,25 @@
 
     items.forEach(a => {
       const id = a.id || a.Id;
-
       const doctor = a.doctor || a.Doctor || {};
       const user = a.user || a.User || {};
       const slot = a.slot || a.Slot || {};
 
-      const docName = doctor.fullName || doctor.FullName || "—";
-      const userName = user.fullName || user.FullName || user.email || user.Email || "—";
+      const doctorName = doctor.fullName || doctor.FullName || "—";
+      const userName =
+        user.fullName ||
+        user.FullName ||
+        user.email ||
+        user.Email ||
+        "—";
+
       const start = slot.startTime || slot.StartTime;
       const status = a.status || a.Status || "—";
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${id}</td>
-        <td>${docName}</td>
+        <td>${doctorName}</td>
         <td>${userName}</td>
         <td>${formatDateTime(start)}</td>
         <td><span class="badge bg-dark">${status}</span></td>
@@ -90,45 +174,62 @@
       rows.appendChild(tr);
     });
 
-    // Page info
-    if (total !== null) pageInfo.textContent = `Page ${page} • Total ${total}`;
-    else pageInfo.textContent = `Page ${page}`;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    pageInfo.textContent = `Page ${currentPage} • Total ${total}`;
 
-    // Disable prev when on first page
-    prevBtn.disabled = page <= 1;
-
-    // If server doesn't return total, allow next always (MVP)
-    // If total exists, you can compute last page; for now keep simple.
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
   }
 
-  async function load() {
+  /**
+   * Apply filters and re-render table.
+   */
+  function applyFiltersAndRender() {
     hideMsg();
-    writeUiToUrl();
 
-    try {
-      const data = await apiFetch(buildUrl(), { auth: true });
-      render(data);
-    } catch (e) {
-      showMsg("danger", e.message);
-    }
+    const filtered = getFilteredAppointments();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+    // Keep current page valid
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const pageItems = paginate(filtered);
+    render(pageItems, filtered.length);
   }
 
-  // Events
-  applyBtn.addEventListener("click", () => { page = 1; load(); });
-  refreshBtn.addEventListener("click", load);
+  /* --------------------------------------------------
+     Events
+  -------------------------------------------------- */
+  applyBtn.addEventListener("click", () => {
+    currentPage = 1;
+    applyFiltersAndRender();
+  });
+
+  refreshBtn.addEventListener("click", loadAppointments);
 
   resetBtn.addEventListener("click", () => {
     statusSelect.value = "";
     doctorIdInput.value = "";
     dateInput.value = "";
-    page = 1;
-    load();
+    currentPage = 1;
+    applyFiltersAndRender();
   });
 
-  prevBtn.addEventListener("click", () => { if (page > 1) { page--; load(); } });
-  nextBtn.addEventListener("click", () => { page++; load(); });
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      applyFiltersAndRender();
+    }
+  });
 
-  // Init
-  readFiltersFromUrlIntoUi();
-  load();
+  nextBtn.addEventListener("click", () => {
+    currentPage++;
+    applyFiltersAndRender();
+  });
+
+  /* --------------------------------------------------
+     Init
+  -------------------------------------------------- */
+  loadAppointments();
 })();

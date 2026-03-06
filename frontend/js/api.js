@@ -3,8 +3,16 @@
 async function apiFetch(path, { method = "GET", body = null, auth = false } = {}) {
   const url = `${API_BASE}${path}`;
 
-  const headers = { Accept: "application/json" };
-  if (body !== null) headers["Content-Type"] = "application/json";
+  const headers = {
+    Accept: "application/json"
+  };
+
+  const isFormData = body instanceof FormData;
+
+  // Only set JSON content-type when body is plain JSON
+  if (body !== null && !isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   // Attach JWT token when auth is required
   if (auth) {
@@ -20,14 +28,20 @@ async function apiFetch(path, { method = "GET", body = null, auth = false } = {}
     res = await fetch(url, {
       method,
       headers,
-      body: body !== null ? JSON.stringify(body) : null
+      body: body === null
+        ? null
+        : isFormData
+          ? body
+          : JSON.stringify(body)
     });
   } catch {
     throw new Error("Network error: backend is not reachable.");
   }
 
   let data = null;
-  try { data = await res.json(); } catch {}
+  if (res.status !== 204) {
+    try { data = await res.json(); } catch {}
+  }
 
   if (!res.ok) {
     const validationErrors = data?.errors

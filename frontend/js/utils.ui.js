@@ -43,3 +43,24 @@ function setButtonLoading(btn, isLoading, loadingText = "Loading...") {
     delete btn.dataset.oldText;
   }
 }
+/**
+ * Convert backend relative image path to an absolute URL.
+ * Example:
+ *   /uploads/doctors/a.jpg
+ * becomes:
+ *   https://localhost:7075/uploads/doctors/a.jpg
+ * @param {string|null|undefined} imageUrl
+ * @returns {string}
+ */
+function resolveImageUrl(imageUrl) {
+  if (!imageUrl) return "../assets/img/doctor-placeholder.png";
+
+  // If already absolute, keep it as-is
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return imageUrl;
+  }
+
+  // API_BASE usually ends with /api, but static files are served from backend root
+  const backendBase = API_BASE.replace(/\/api$/i, "");
+  return `${backendBase}${imageUrl}`;
+}

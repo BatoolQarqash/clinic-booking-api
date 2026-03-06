@@ -45,6 +45,7 @@
               <th>Service</th>
               <th>Fee</th>
               <th>Rating</th>
+              <th>Status</th>
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -78,6 +79,11 @@
             </div>
 
             <div class="mb-2">
+              <label class="form-label">Bio</label>
+              <textarea id="bioInput" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="mb-2">
               <label class="form-label">Clinic Name</label>
               <input id="clinicInput" class="form-control" />
             </div>
@@ -101,9 +107,16 @@
             </div>
 
             <div class="mt-2">
-              <label class="form-label">Image Url</label>
-              <input id="imageUrlInput" class="form-control" placeholder="https://..." />
-              <div class="text-muted small mt-1">MVP: use an URL. Later we can add upload.</div>
+              <label class="form-label">Doctor Image</label>
+              <input id="imageFileInput" type="file" accept="image/*" class="form-control" />
+              <div class="text-muted small mt-1">Choose an image from your device.</div>
+            </div>
+
+            <div class="mt-2 d-none" id="currentImageWrap">
+              <label class="form-label">Current Image</label>
+              <div>
+                <img id="currentImagePreview" src="" alt="Current doctor image" style="max-width: 100%; max-height: 180px; border-radius: 12px;" />
+              </div>
             </div>
           </div>
 

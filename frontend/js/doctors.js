@@ -98,10 +98,7 @@
       const col = document.createElement("div");
       col.className = "col-12 col-md-6 col-lg-4";
 
-      const img =
-        d.imageUrl ||
-        d.ImageUrl ||
-        "../assets/img/doctor-placeholder.png";
+      const img = resolveImageUrl(d.imageUrl || d.ImageUrl);
 
       const serviceName =
         d.service?.name ||
