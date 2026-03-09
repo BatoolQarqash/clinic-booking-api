@@ -25,10 +25,14 @@
 
       <div class="fw-semibold">Doctor</div>
 
-      <!-- Favorite (UI only for now) -->
-      <button class="btn cb-icon-btn" type="button" title="Favorite">
-        <i class="bi bi-heart"></i>
-      </button>
+       <button
+  id="favoriteBtn"
+  class="btn cb-icon-btn"
+  type="button"
+  title="Favorite"
+>
+  <i id="favoriteIcon" class="bi bi-heart"></i>
+</button>
     </header>
 
     <!-- Doctor hero section -->
@@ -87,13 +91,27 @@
     </section>
 
     <!-- Bottom nav -->
-    <nav class="cb-bottom-nav">
-      <a class="cb-nav-item" href="home.html"><i class="bi bi-house"></i></a>
-      <a class="cb-nav-item active" href="doctors.html"><i class="bi bi-people"></i></a>
-      <a class="cb-nav-item" href="#"><i class="bi bi-heart"></i></a>
-      <a class="cb-nav-item" href="my-appointments.html"><i class="bi bi-person"></i></a>
-    </nav>
+     <nav class="cb-bottom-nav">
+  <a class="cb-nav-item" href="home.html" title="Home">
+    <i class="bi bi-house-fill"></i>
+    <span class="cb-nav-label">Home</span>
+  </a>
 
+  <a class="cb-nav-item" href="doctors.html" title="Doctors">
+    <i class="bi bi-people-fill"></i>
+    <span class="cb-nav-label">Doctors</span>
+  </a>
+
+  <a class="cb-nav-item active" href="my-appointments.html" title="Appointments">
+    <i class="bi bi-clipboard-check"></i>
+    <span class="cb-nav-label">Appointments</span>
+  </a>
+
+  <a class="cb-nav-item" href="favorites.html" title="Favorites">
+    <i class="bi bi-heart"></i>
+    <span class="cb-nav-label">Favorites</span>
+  </a>
+</nav>
   </div>
 
   <!-- Scripts -->

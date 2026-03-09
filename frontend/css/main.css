@@ -46,29 +46,30 @@ body{
    - On mobile: looks like an app container (max 420px)
    - On desktop: becomes wider and responsive
 -------------------------------------------------------- */
-.cb-shell{
+..cb-shell{
   width: 100%;
-  max-width: 420px;      /* mobile look */
-  min-height: 100vh;     /* ✅ use full viewport height */
+  max-width: 420px;
+  min-height: 100vh;
   margin: 0 auto;
   position: relative;
-  padding-bottom: 90px;  /* space for bottom nav */
+  padding-bottom: 90px;
 }
 
-/* Tablet */
-@media (min-width: 768px){
-  .cb-shell{
-    max-width: 900px;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-}
-
-/* Desktop */
+/* Desktop layout */
 @media (min-width: 992px){
-  .cb-shell{
-    max-width: 1140px;
+
+  body{
+    display:flex;
   }
+
+  .cb-shell{
+    max-width: none;
+    width: 100%;
+    margin-left: 220px;   /* space for sidebar */
+    padding: 40px;
+    padding-bottom: 40px;
+  }
+
 }
 
 /* -------------------------------------------------------
@@ -298,12 +299,14 @@ body{
    - Centered and matches shell width
    - Prevents giant white bar on desktop
 -------------------------------------------------------- */
+/* -------------------------------------------------------
+   Bottom nav on mobile / sidebar on desktop
+-------------------------------------------------------- */
 .cb-bottom-nav{
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(420px, 100%);
+  left: 0;
+  right: 0;
   height: 74px;
   background: #ffffff;
   border-top: 1px solid rgba(0,0,0,.06);
@@ -313,28 +316,72 @@ body{
   z-index: 999;
 }
 
-@media (min-width: 768px){
-  .cb-bottom-nav{
-    width: min(900px, 100%);
-  }
-}
-@media (min-width: 992px){
-  .cb-bottom-nav{
-    width: min(1140px, 100%);
-  }
-}
-
+/* Nav item base */
 .cb-nav-item{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   font-size: 22px;
   color: #111827;
   text-decoration: none;
-  opacity: 0.6;
+  opacity: 0.65;
+  padding: 8px 10px;
 }
+
+.cb-nav-item i{
+  font-size: 22px;
+  line-height: 1;
+}
+
 .cb-nav-item.active{
   color: var(--cb-primary);
   opacity: 1;
 }
 
+/* Hide labels on mobile */
+.cb-nav-label{
+  display: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Desktop: convert bottom nav to left sidebar */
+@media (min-width: 992px){
+  .cb-bottom-nav{
+    top: 0;
+    bottom: 0;
+    right: auto;
+    width: 220px;
+    height: 100vh;
+    border-top: none;
+    border-right: 1px solid rgba(0,0,0,.06);
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 36px 20px;
+    gap: 10px;
+  }
+
+  .cb-nav-item{
+    width: 100%;
+    justify-content: flex-start; /* left align icon + label */
+    text-align: left;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 18px;
+  }
+
+  .cb-nav-item i{
+    font-size: 20px;
+    width: 22px; /* keeps all icons aligned */
+    text-align: center;
+  }
+
+  .cb-nav-label{
+    display: inline;
+  }
+}
 /* -------------------------------------------------------
    Doctor Details Hero (Fix "half image disappears")
    - Responsive height using clamp()
@@ -411,4 +458,32 @@ body{
   border-radius: 18px;
   box-shadow: var(--cb-shadow);
   padding: 14px;
+}
+.cb-nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:18px;
+  padding:12px 20px;
+  color:#555;
+  text-decoration:none;
+}
+
+.cb-nav-item i{
+  font-size:20px;
+}
+
+/* hide text on mobile */
+.cb-nav-label{
+  display:none;
+}
+
+/* show text on desktop */
+@media (min-width:992px){
+
+  .cb-nav-label{
+    display:inline;
+    font-size:15px;
+  }
+
 }

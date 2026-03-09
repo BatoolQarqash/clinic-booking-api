@@ -1,4 +1,4 @@
-AS<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -7,21 +7,30 @@ AS<!doctype html>
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <!-- Custom CSS -->
   <link href="../css/main.css" rel="stylesheet">
 </head>
 
 <body class="cb-bg">
 
-  <!-- Mobile-like container (centered on desktop) -->
+  <!-- Main page shell -->
   <div class="cb-shell">
 
     <!-- Header -->
     <header class="d-flex align-items-center justify-content-between pt-3 px-3">
       <div class="d-flex align-items-center gap-2">
-        <img src="../assets/img/avatar.png" class="cb-avatar" alt="avatar" onerror="this.style.display='none'">
+        <!-- User avatar -->
+        <img
+          src="../assets/img/avatar.png"
+          class="cb-avatar"
+          alt="avatar"
+          onerror="this.style.display='none'"
+        />
+
         <div>
           <div class="cb-hello">
             Hello <span class="cb-hello-name" id="helloName">User</span> !
@@ -29,10 +38,75 @@ AS<!doctype html>
         </div>
       </div>
 
-      <div class="d-flex align-items-center gap-3">
-        <button class="btn cb-icon-btn" type="button" title="Notifications">
-          <i class="bi bi-bell"></i>
+      <!-- Header right actions -->
+      <div class="d-flex align-items-center gap-2">
+
+        <!-- Notification area -->
+        <div class="position-relative">
+          <!-- Bell button -->
+          <button
+            id="notifBtn"
+            class="btn cb-icon-btn position-relative"
+            type="button"
+            title="Notifications"
+            aria-label="Notifications"
+          >
+            <i class="bi bi-bell"></i>
+
+            <!-- Notification count badge -->
+            <span
+              id="notifBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+            >
+              0
+            </span>
+          </button>
+
+          <!-- Notification dropdown panel -->
+          <div
+            id="notifPanel"
+            class="card shadow-sm d-none"
+            style="
+              position: absolute;
+              top: 48px;
+              right: 0;
+              width: 320px;
+              max-width: 90vw;
+              z-index: 1050;
+              border-radius: 16px;
+            "
+          >
+            <div class="card-body p-0">
+              <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                <div class="fw-semibold">Notifications</div>
+
+                <button
+                  id="closeNotifBtn"
+                  class="btn btn-sm btn-light"
+                  type="button"
+                >
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+
+              <div id="notifList" class="p-2">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logout button -->
+        <button
+          id="logoutBtn"
+          class="btn btn-outline-danger btn-sm"
+          type="button"
+          title="Logout"
+        >
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="d-none d-md-inline">Logout</span>
         </button>
+
       </div>
     </header>
 
@@ -54,13 +128,14 @@ AS<!doctype html>
     <section class="px-3 mt-4">
       <div class="d-flex align-items-center justify-content-between">
         <h2 class="cb-section-title m-0">Services</h2>
+
         <a class="cb-pill-link" href="doctors.html">
-          see all <i class="bi bi-chevron-right"></i>
+          See all <i class="bi bi-chevron-right"></i>
         </a>
       </div>
 
       <div id="servicesRow" class="cb-services-row mt-3">
-        <!-- filled by JS -->
+        <!-- Filled by JS -->
       </div>
 
       <div id="servicesError" class="alert alert-danger d-none mt-3"></div>
@@ -71,31 +146,49 @@ AS<!doctype html>
       <h2 class="cb-section-title mb-3">Top Doctors</h2>
 
       <div id="doctorsList" class="d-flex flex-column gap-3">
-        <!-- filled by JS -->
+        <!-- Filled by JS -->
       </div>
 
       <div id="doctorsError" class="alert alert-danger d-none mt-3"></div>
     </section>
 
-    <!-- Bottom Nav -->
-    <nav class="cb-bottom-nav">
-      <a class="cb-nav-item active" href="home.html"><i class="bi bi-house-fill"></i></a>
-      <a class="cb-nav-item" href="#"><i class="bi bi-calendar2"></i></a>
-      <a class="cb-nav-item" href="#"><i class="bi bi-heart"></i></a>
-      <a class="cb-nav-item" href="my-appointments.html"><i class="bi bi-person"></i></a>
-    </nav>
+    <!-- Navigation -->
+      <nav class="cb-bottom-nav">
+  <a class="cb-nav-item active" href="home.html" title="Home">
+    <i class="bi bi-house-fill"></i>
+    <span class="cb-nav-label">Home</span>
+  </a>
+
+  <a class="cb-nav-item" href="doctors.html" title="Doctors">
+    <i class="bi bi-people-fill"></i>
+    <span class="cb-nav-label">Doctors</span>
+  </a>
+
+  <a class="cb-nav-item" href="favorites.html" title="Favorites">
+    <i class="bi bi-heart-fill"></i>
+    <span class="cb-nav-label">Favorites</span>
+  </a>
+
+  <a class="cb-nav-item" href="my-appointments.html" title="Appointments">
+    <i class="bi bi-clipboard-check"></i>
+    <span class="cb-nav-label">Appointments</span>
+  </a>
+</nav>
 
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Core config + API wrapper -->
-<script src="../js/config.js"></script>
-<script src="../js/api.js"></script>
 
-<!-- Shared utilities (must be loaded BEFORE page scripts) -->
-<script src="../js/utils.dom.js"></script>
-<script src="../js/utils.ui.js"></script>
-<script src="../js/utils.session.js"></script>
+  <!-- Core config + API wrapper -->
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+
+  <!-- Shared utilities -->
+  <script src="../js/utils.dom.js"></script>
+  <script src="../js/utils.ui.js"></script>
+  <script src="../js/utils.session.js"></script>
+
+  <!-- Page script -->
   <script src="../js/home.js"></script>
 </body>
 </html>

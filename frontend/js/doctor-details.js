@@ -22,25 +22,134 @@
   const confirmBtn = document.getElementById("confirmBtn");
   const bookMsg = document.getElementById("bookMsg");
 
+  // Favorite UI
+  const favoriteBtn = document.getElementById("favoriteBtn");
+  const favoriteIcon = document.getElementById("favoriteIcon");
 
   /* --------------------------------------------------
      Page state
   -------------------------------------------------- */
-  const doctorId = getQueryInt("id"); // ✅ from utils.session.js
+  const doctorId = getQueryInt("id");
   let selectedSlotId = null;
-
+  let currentDoctor = null;
 
   /* --------------------------------------------------
-     Small UI helpers (wrap shared utilities)
+     Favorites storage
+  -------------------------------------------------- */
+  const FAVORITES_KEY = "cb_favorite_doctors";
+
+  /**
+   * Read favorite doctors from localStorage.
+   * @returns {Array}
+   */
+  function getFavoriteDoctors() {
+    try {
+      return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Save favorite doctors to localStorage.
+   * @param {Array} items
+   */
+  function saveFavoriteDoctors(items) {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(items));
+  }
+
+  /**
+   * Check if a doctor is already in favorites.
+   * @param {number|string} id
+   * @returns {boolean}
+   */
+  function isFavoriteDoctor(id) {
+    return getFavoriteDoctors().some(d => String(d.id) === String(id));
+  }
+
+  /**
+   * Add doctor to favorites if not already saved.
+   * @param {any} doctor
+   */
+  function addFavoriteDoctor(doctor) {
+    const items = getFavoriteDoctors();
+
+    if (items.some(d => String(d.id) === String(doctor.id || doctor.Id))) {
+      return;
+    }
+
+    items.push({
+      id: doctor.id || doctor.Id,
+      fullName: doctor.fullName || doctor.FullName || "Doctor",
+      title: doctor.title || doctor.Title || "",
+      clinicName: doctor.clinicName || doctor.ClinicName || "",
+      imageUrl: doctor.imageUrl || doctor.ImageUrl || "",
+      fee: doctor.fee ?? doctor.Fee ?? null,
+      serviceName:
+        doctor.service?.name ||
+        doctor.Service?.Name ||
+        doctor.serviceName ||
+        doctor.ServiceName ||
+        ""
+    });
+
+    saveFavoriteDoctors(items);
+  }
+
+  /**
+   * Remove doctor from favorites.
+   * @param {number|string} id
+   */
+  function removeFavoriteDoctor(id) {
+    const items = getFavoriteDoctors().filter(d => String(d.id) !== String(id));
+    saveFavoriteDoctors(items);
+  }
+
+  /**
+   * Update favorite icon state in the UI.
+   */
+  function refreshFavoriteUi() {
+    if (!favoriteIcon || !doctorId) return;
+
+    if (isFavoriteDoctor(doctorId)) {
+      favoriteIcon.className = "bi bi-heart-fill";
+      favoriteIcon.style.color = "#dc3545";
+    } else {
+      favoriteIcon.className = "bi bi-heart";
+      favoriteIcon.style.color = "";
+    }
+  }
+
+  /**
+   * Toggle current doctor as favorite/unfavorite.
+   */
+  function toggleFavoriteDoctor() {
+    if (!currentDoctor) return;
+
+    const id = currentDoctor.id || currentDoctor.Id;
+    if (!id) return;
+
+    if (isFavoriteDoctor(id)) {
+      removeFavoriteDoctor(id);
+      showBookingMessage("Doctor removed from favorites.");
+    } else {
+      addFavoriteDoctor(currentDoctor);
+      showBookingMessage("Doctor added to favorites.");
+    }
+
+    refreshFavoriteUi();
+  }
+
+  /* --------------------------------------------------
+     Small UI helpers
   -------------------------------------------------- */
 
   /**
    * Show a warning message related to slots.
-   * We keep this wrapper so the rest of the code stays readable.
    * @param {string} msg
    */
   function showSlotsError(msg) {
-    showAlert(slotsError, "warning", msg); // ✅ from utils.ui.js
+    showAlert(slotsError, "warning", msg);
   }
 
   /**
@@ -72,13 +181,12 @@
   function setSlotsLoading(isLoading) {
     if (isLoading) {
       slotsLoading.classList.remove("d-none");
-      setButtonLoading(loadSlotsBtn, true, "Loading..."); // ✅ from utils.ui.js
+      setButtonLoading(loadSlotsBtn, true, "Loading...");
     } else {
       slotsLoading.classList.add("d-none");
       setButtonLoading(loadSlotsBtn, false);
     }
   }
-
 
   /* --------------------------------------------------
      Doctor rendering
@@ -86,14 +194,12 @@
 
   /**
    * Safely set the hero image.
-   * Supports both imageUrl (camelCase) and ImageUrl (PascalCase).
    * @param {any} doctor
    */
   function setDoctorImage(doctor) {
-   const img = resolveImageUrl(doctor?.imageUrl || doctor?.ImageUrl);
+    const img = resolveImageUrl(doctor?.imageUrl || doctor?.ImageUrl);
     heroImg.src = img;
 
-    // Fallback if image fails to load
     heroImg.onerror = () => {
       heroImg.src = "../assets/img/doctor-placeholder.png";
     };
@@ -101,7 +207,6 @@
 
   /**
    * Render doctor fields into the UI.
-   * Supports both camelCase and PascalCase fields from .NET JSON.
    * @param {any} doctor
    */
   function renderDoctor(doctor) {
@@ -123,19 +228,20 @@
 
     try {
       const doctor = await apiFetch(`/doctors/${doctorId}`);
+      currentDoctor = doctor;
       renderDoctor(doctor);
+      refreshFavoriteUi();
     } catch (e) {
       showSlotsError(e.message);
     }
   }
-
 
   /* --------------------------------------------------
      Slots
   -------------------------------------------------- */
 
   /**
-   * Format an ISO datetime into "HH:mm" (local time).
+   * Format an ISO datetime into "HH:mm".
    * @param {string} iso
    * @returns {string}
    */
@@ -157,7 +263,7 @@
   }
 
   /**
-   * Render available slots as buttons (pills).
+   * Render available slots as buttons.
    * @param {Array} slots
    */
   function renderSlots(slots) {
@@ -179,13 +285,8 @@
       btn.textContent = formatTime(start);
 
       btn.addEventListener("click", () => {
-        // Remove active state from all
         slotsWrap.querySelectorAll(".cb-slot-btn").forEach(b => b.classList.remove("active"));
-
-        // Set current active
         btn.classList.add("active");
-
-        // Save selection
         selectedSlotId = slotId;
         confirmBtn.disabled = false;
       });
@@ -195,7 +296,7 @@
   }
 
   /**
-   * Load available slots for the selected date.
+   * Load available slots for selected date.
    */
   async function loadSlots() {
     hideSlotsError();
@@ -220,7 +321,6 @@
       setSlotsLoading(false);
     }
   }
-
 
   /* --------------------------------------------------
      Booking
@@ -251,37 +351,29 @@
       });
 
       showBookingMessage(res?.message || "Appointment booked successfully!");
-
-      // Reload slots to reflect the new booking (slot becomes unavailable)
       await loadSlots();
-
     } catch (e) {
       showSlotsError(e.message);
       confirmBtn.disabled = false;
     }
   }
 
-
   /* --------------------------------------------------
      Init
   -------------------------------------------------- */
 
-  // ✅ Use shared auth guard
   requireAuth();
 
-  // Validate doctor id from URL
   if (!doctorId) {
     showSlotsError("Missing doctor id in URL.");
     return;
   }
 
-  // Default date = today
   dateInput.valueAsDate = new Date();
 
-  // Events
   loadSlotsBtn.addEventListener("click", loadSlots);
   confirmBtn.addEventListener("click", confirmBooking);
+  favoriteBtn?.addEventListener("click", toggleFavoriteDoctor);
 
-  // Initial load
   loadDoctor();
 })();
