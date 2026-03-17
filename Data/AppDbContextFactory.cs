@@ -12,16 +12,16 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false)
             .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddEnvironmentVariables()
             .Build();
 
-        var dataDir = Path.Combine(Directory.GetCurrentDirectory(), "Data");
-        Directory.CreateDirectory(dataDir);
+        var connectionString = config.GetConnectionString("DefaultConnection");
 
-        var dbPath = Path.Combine(dataDir, "clinicbooking.db");
-        var cs = $"Data Source={dbPath}";
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseSqlite(cs)
+            .UseSqlServer(connectionString)
             .Options;
 
         return new AppDbContext(options);

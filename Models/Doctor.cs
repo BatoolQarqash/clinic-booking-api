@@ -4,6 +4,8 @@ namespace ClinicBooking.Models;
 
 public class Doctor
 {
+    internal object AvailabilitySlot;
+
     public int Id { get; set; }
 
     [Required, MaxLength(150)]

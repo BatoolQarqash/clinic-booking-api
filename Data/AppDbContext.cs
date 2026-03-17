@@ -25,13 +25,40 @@ public class AppDbContext : DbContext
             .HasIndex(a => a.SlotId)
             .IsUnique();
 
+        modelBuilder.Entity<AvailabilitySlot>()
+            .HasIndex(s => new { s.DoctorId, s.StartTime })
+            .IsUnique();
+
         modelBuilder.Entity<Doctor>()
             .Property(d => d.Fee)
             .HasPrecision(10, 2);
 
-        // ✅ هذا الجديد لمنع تكرار نفس slot لنفس الدكتور
+        // Doctor -> AvailabilitySlots
         modelBuilder.Entity<AvailabilitySlot>()
-    .HasIndex(s => new { s.DoctorId, s.StartTime })
-    .IsUnique();
+            .HasOne(s => s.Doctor)
+            .WithMany(d => d.Slots)
+            .HasForeignKey(s => s.DoctorId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Appointment -> Doctor
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Doctor)
+            .WithMany(d => d.Appointments)
+            .HasForeignKey(a => a.DoctorId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Appointment -> Slot
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Slot)
+            .WithMany(s => s.Appointments)
+            .HasForeignKey(a => a.SlotId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Appointment -> User
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.User)
+            .WithMany(u => u.Appointments)
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

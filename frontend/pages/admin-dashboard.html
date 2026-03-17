@@ -11,86 +11,205 @@
 </head>
 
 <body class="cb-bg">
-  <div class="cb-shell">
+  <div class="admin-layout">
+    <div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>
 
-    <!-- Top bar -->
-    <header class="d-flex align-items-center justify-content-between pt-3 px-3">
-      <div class="fw-semibold">Admin Dashboard</div>
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="admin-sidebar-brand">Clinic Admin</div>
 
-      <button id="logoutBtn" class="btn btn-outline-dark btn-sm">
-        <i class="bi bi-box-arrow-right"></i> Logout
-      </button>
-    </header>
+      <nav class="admin-sidebar-nav">
+        <a class="admin-sidebar-link active" href="admin-dashboard.html">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
 
-    <!-- Content -->
-    <section class="px-3 mt-3">
-      <div class="alert alert-info">
-        Logged in as: <span class="fw-semibold" id="adminName">Admin</span>
+        <a class="admin-sidebar-link" href="admin-doctors.html">
+          <i class="bi bi-people"></i>
+          <span>Doctors</span>
+        </a>
+
+        <a class="admin-sidebar-link" href="admin-slots.html">
+          <i class="bi bi-calendar2-week"></i>
+          <span>Slots</span>
+        </a>
+
+        <a class="admin-sidebar-link" href="admin-appointments.html">
+          <i class="bi bi-clipboard-check"></i>
+          <span>Appointments</span>
+        </a>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <button id="logoutBtn" class="btn btn-outline-dark w-100">
+          <i class="bi bi-box-arrow-right me-2"></i> Logout
+        </button>
       </div>
+    </aside>
 
-      <div class="row g-3">
-        <div class="col-12 col-md-6">
-          <a href="admin-doctors.html" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="fw-semibold">Manage Doctors</div>
-                  <div class="text-muted small">CRUD / Upsert</div>
-                </div>
-                <i class="bi bi-people fs-3"></i>
-              </div>
-            </div>
-          </a>
-        </div>
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <button class="admin-menu-btn" id="adminMenuBtn" type="button">
+          <i class="bi bi-list"></i>
+        </button>
 
-        <div class="col-12 col-md-6">
-          <a href="admin-slots.html" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="fw-semibold">Manage Slots</div>
-                  <div class="text-muted small">Bulk slot generator</div>
-                </div>
-                <i class="bi bi-calendar2-week fs-3"></i>
-              </div>
-            </div>
-          </a>
-        </div>
+        <h1 class="admin-page-title">Admin Dashboard</h1>
 
-        <div class="col-12">
-          <a href="admin-appointments.html" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="fw-semibold">Appointments</div>
-                  <div class="text-muted small">Pagination + Filters</div>
-                </div>
-                <i class="bi bi-clipboard-check fs-3"></i>
-              </div>
-            </div>
-          </a>
+        <div></div>
+      </header>
+
+      <section class="admin-page-content admin-dashboard-wrap">
+  <div class="alert alert-info mb-4">
+    Logged in as: <span class="fw-semibold" id="adminName">Admin</span>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="admin-stat-card">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div class="admin-stat-label">Doctors</div>
+            <div class="admin-stat-value">Manage</div>
+          </div>
+          <div class="admin-stat-icon">
+            <i class="bi bi-people"></i>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Admin bottom nav -->
-    <nav class="cb-bottom-nav">
-      <a class="cb-nav-item active" href="admin-dashboard.html"><i class="bi bi-speedometer2"></i></a>
-      <a class="cb-nav-item" href="admin-doctors.html"><i class="bi bi-people"></i></a>
-      <a class="cb-nav-item" href="admin-slots.html"><i class="bi bi-calendar2-week"></i></a>
-      <a class="cb-nav-item" href="admin-appointments.html"><i class="bi bi-clipboard-check"></i></a>
-    </nav>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="admin-stat-card">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div class="admin-stat-label">Slots</div>
+            <div class="admin-stat-value">Bulk</div>
+          </div>
+          <div class="admin-stat-icon">
+            <i class="bi bi-calendar2-week"></i>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="admin-stat-card">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div class="admin-stat-label">Appointments</div>
+            <div class="admin-stat-value">Track</div>
+          </div>
+          <div class="admin-stat-icon">
+            <i class="bi bi-clipboard-check"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="admin-stat-card">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div class="admin-stat-label">Admin</div>
+            <div class="admin-stat-value">Panel</div>
+          </div>
+          <div class="admin-stat-icon">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main actions -->
+  <div class="row g-4">
+    <div class="col-12 col-lg-6 col-xxl-4">
+      <a href="admin-doctors.html" class="text-decoration-none">
+        <div class="admin-action-card">
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div>
+              <div class="admin-action-title">Manage Doctors</div>
+              <div class="admin-action-subtitle">
+                Add, edit, activate, or deactivate doctors and manage their clinic details.
+              </div>
+            </div>
+            <div class="admin-action-icon">
+              <i class="bi bi-people"></i>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-12 col-lg-6 col-xxl-4">
+      <a href="admin-slots.html" class="text-decoration-none">
+        <div class="admin-action-card">
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div>
+              <div class="admin-action-title">Manage Slots</div>
+              <div class="admin-action-subtitle">
+                Generate available appointment slots in bulk for doctors by date and time.
+              </div>
+            </div>
+            <div class="admin-action-icon">
+              <i class="bi bi-calendar2-week"></i>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-12 col-xxl-4">
+      <a href="admin-appointments.html" class="text-decoration-none">
+        <div class="admin-action-card">
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div>
+              <div class="admin-action-title">Appointments</div>
+              <div class="admin-action-subtitle">
+                Review bookings, filter by doctor or date, and track appointment status.
+              </div>
+            </div>
+            <div class="admin-action-icon">
+              <i class="bi bi-clipboard-check"></i>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+    </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script src="../js/config.js"></script>
   <script src="../js/api.js"></script>
-
   <script src="../js/utils.dom.js"></script>
   <script src="../js/utils.ui.js"></script>
   <script src="../js/utils.session.js"></script>
+
+  <script>
+    const adminSidebar = document.getElementById("adminSidebar");
+    const adminSidebarOverlay = document.getElementById("adminSidebarOverlay");
+    const adminMenuBtn = document.getElementById("adminMenuBtn");
+
+    function openAdminSidebar() {
+      adminSidebar?.classList.add("is-open");
+      adminSidebarOverlay?.classList.add("show");
+    }
+
+    function closeAdminSidebar() {
+      adminSidebar?.classList.remove("is-open");
+      adminSidebarOverlay?.classList.remove("show");
+    }
+
+    adminMenuBtn?.addEventListener("click", openAdminSidebar);
+    adminSidebarOverlay?.addEventListener("click", closeAdminSidebar);
+    window.addEventListener("resize", () => {
+      if (window.innerWidth >= 992) closeAdminSidebar();
+    });
+  </script>
 
   <script src="../js/admin-dashboard.js"></script>
 </body>

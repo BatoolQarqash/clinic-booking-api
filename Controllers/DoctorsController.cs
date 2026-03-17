@@ -25,7 +25,9 @@ public class DoctorsController : ControllerBase
             query = query.Where(d => d.ServiceId == serviceId.Value);
 
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(d => d.FullName.Contains(q) || (d.Title != null && d.Title.Contains(q)));
+            query = query.Where(d =>
+                d.FullName.Contains(q) ||
+                (d.Title != null && d.Title.Contains(q)));
 
         var doctors = await query
             .OrderBy(d => d.FullName)
@@ -35,26 +37,31 @@ public class DoctorsController : ControllerBase
                 d.FullName,
                 d.Title,
                 d.ClinicName,
+                d.ImageUrl,   // ✅ added
                 d.Fee,
                 d.Rating,
-                Service = new { d.Service!.Id, d.Service!.Name }
+                Service = new
+                {
+                    d.Service!.Id,
+                    d.Service!.Name
+                }
             })
             .ToListAsync();
 
         return Ok(doctors);
     }
+
     // GET /api/doctors/top?take=5
     [HttpGet("top")]
     public async Task<IActionResult> GetTopDoctors([FromQuery] int take = 5)
     {
-        // Safety limits
         if (take < 1) take = 5;
         if (take > 20) take = 20;
 
         var doctors = await _db.Doctors
             .Include(d => d.Service)
             .Where(d => d.IsActive)
-            .OrderByDescending(d => d.Rating ?? 0)   // highest rating first (null treated as 0)
+            .OrderByDescending(d => d.Rating ?? 0)
             .ThenBy(d => d.FullName)
             .Take(take)
             .Select(d => new
@@ -66,7 +73,11 @@ public class DoctorsController : ControllerBase
                 d.ImageUrl,
                 d.Fee,
                 d.Rating,
-                Service = new { d.Service!.Id, d.Service!.Name }
+                Service = new
+                {
+                    d.Service!.Id,
+                    d.Service!.Name
+                }
             })
             .ToListAsync();
 
@@ -91,31 +102,34 @@ public class DoctorsController : ControllerBase
                 d.Fee,
                 d.Rating,
                 d.ServiceId,
-                Service = new { d.Service!.Id, d.Service!.Name }
+                Service = new
+                {
+                    d.Service!.Id,
+                    d.Service!.Name
+                }
             })
             .FirstOrDefaultAsync();
 
-        if (doctor == null) return NotFound(new { message = "Doctor not found" });
+        if (doctor == null)
+            return NotFound(new { message = "Doctor not found" });
 
         return Ok(doctor);
     }
+
     // GET /api/doctors/{id}/slots?date=2026-02-22
     [HttpGet("{id:int}/slots")]
     public async Task<IActionResult> GetAvailableSlots(int id, [FromQuery] string date)
     {
-        // 1) Validate doctor exists and active
         var doctorExists = await _db.Doctors.AnyAsync(d => d.Id == id && d.IsActive);
         if (!doctorExists)
             return NotFound(new { message = "Doctor not found" });
 
-        // 2) Parse date safely
         if (!DateOnly.TryParse(date, out var day))
             return BadRequest(new { message = "Invalid date format. Use YYYY-MM-DD" });
 
         var dayStart = day.ToDateTime(TimeOnly.MinValue);
         var dayEnd = day.ToDateTime(TimeOnly.MaxValue);
 
-        // 3) Get only available (not booked) slots for that day
         var slots = await _db.AvailabilitySlots
             .Where(s => s.DoctorId == id
                         && s.StartTime >= dayStart

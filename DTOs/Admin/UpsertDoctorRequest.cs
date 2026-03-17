@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace ClinicBooking.DTOs.Admin;
 
@@ -13,9 +14,6 @@ public class UpsertDoctorRequest
     [MaxLength(2000)]
     public string? Bio { get; set; }
 
-    [MaxLength(500)]
-    public string? ImageUrl { get; set; }
-
     [MaxLength(200)]
     public string? ClinicName { get; set; }
 
@@ -29,4 +27,7 @@ public class UpsertDoctorRequest
     public int ServiceId { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    // Uploaded image file from admin form
+    public IFormFile? ImageFile { get; set; }
 }

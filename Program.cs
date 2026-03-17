@@ -1,11 +1,10 @@
 using ClinicBooking.Auth;
 using ClinicBooking.Data;
 using ClinicBooking.Seed;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,20 +41,45 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// EF Core SQLite
+// Read connection string once so we can inspect what runtime is actually using
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new Exception("Connection string 'DefaultConnection' is missing.");
+}
+
+// Print useful startup diagnostics
+Console.WriteLine("========== APP STARTUP DIAGNOSTICS ==========");
+Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "(null)"}");
+Console.WriteLine($"ConnectionStrings__DefaultConnection env var exists: {!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection"))}");
+
+// Hide password before printing
+var safeConnectionString = connectionString;
+if (safeConnectionString.Contains("Password=", StringComparison.OrdinalIgnoreCase))
+{
+    var parts = safeConnectionString.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
+    for (int i = 0; i < parts.Count; i++)
+    {
+        if (parts[i].TrimStart().StartsWith("Password=", StringComparison.OrdinalIgnoreCase))
+        {
+            parts[i] = "Password=***";
+        }
+    }
+    safeConnectionString = string.Join(';', parts) + ";";
+}
+
+Console.WriteLine($"Resolved DefaultConnection: {safeConnectionString}");
+Console.WriteLine("============================================");
+
+// EF Core - SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    // مسار ثابت داخل المشروع
-    var dataDir = Path.Combine(builder.Environment.ContentRootPath, "Data");
-    Directory.CreateDirectory(dataDir);
-
-    var dbPath = Path.Combine(dataDir, "clinicbooking.db");
-
-    options.UseSqlite($"Data Source={dbPath}");
+    options.UseSqlServer(connectionString);
 });
 
-// CORS (Dev) - يسمح لأي Frontend أثناء التطوير
+// CORS (Dev)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevCors", policy =>
@@ -66,11 +90,15 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+// JWT
 var jwt = builder.Configuration.GetSection("Jwt");
 var key = jwt["Key"];
 
 if (string.IsNullOrWhiteSpace(key))
-    throw new Exception("JWT Key is missing. Please set Jwt:Key in appsettings.json (32+ chars).");
+{
+    throw new Exception("JWT Key is missing. Please set Jwt:Key in appsettings.json or user secrets.");
+}
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -86,29 +114,40 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
         };
     });
-//DI
+
+// DI
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<ClinicBooking.Services.SlotService>();
 builder.Services.AddScoped<ClinicBooking.Services.AppointmentService>();
+
 var app = builder.Build();
-//✅ هيك أي Exception غير معالج يرجع JSON مرتب + traceId.
+
+// Global exception middleware
 app.UseMiddleware<ClinicBooking.Middlewares.ExceptionHandlingMiddleware>();
 
-
-
-// ✅ يطبّق migrations ثم يعمل seeding
+// Apply migrations + seed data
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupMigration");
 
-    // يضمن DB محدثة حسب المايغريشن
-    await db.Database.MigrateAsync();
+    try
+    {
+        logger.LogInformation("Starting database migration...");
+        await db.Database.MigrateAsync();
+        logger.LogInformation("Database migration completed successfully.");
 
-    // يضيف البيانات الأولية (مرة واحدة)
-    await DbSeeder.SeedAsync(db, builder.Configuration);
+        logger.LogInformation("Starting database seeding...");
+        await DbSeeder.SeedAsync(db, builder.Configuration);
+        logger.LogInformation("Database seeding completed successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database migration/seeding failed during startup.");
+        throw;
+    }
 }
-
 
 app.UseCors("DevCors");
 
@@ -119,6 +158,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

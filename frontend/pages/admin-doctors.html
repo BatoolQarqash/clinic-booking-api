@@ -11,141 +11,191 @@
 </head>
 
 <body class="cb-bg">
-  <div class="cb-shell">
+  <div class="admin-layout">
+    <div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>
 
-    <header class="d-flex align-items-center justify-content-between pt-3 px-3">
-      <a class="btn cb-icon-btn" href="admin-dashboard.html" title="Back"><i class="bi bi-chevron-left"></i></a>
-      <div class="fw-semibold">Admin Doctors</div>
-      <button id="newBtn" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New</button>
-    </header>
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="admin-sidebar-brand">Clinic Admin</div>
 
-    <section class="px-3 mt-3">
-      <div id="pageMsg" class="alert d-none"></div>
+      <nav class="admin-sidebar-nav">
+        <a class="admin-sidebar-link" href="admin-dashboard.html">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
 
-      <div class="row g-2 align-items-center">
-        <div class="col-12 col-md-6">
-          <input id="qInput" class="form-control" placeholder="Search by name / clinic..." />
+        <a class="admin-sidebar-link active" href="admin-doctors.html">
+          <i class="bi bi-people"></i>
+          <span>Doctors</span>
+        </a>
+
+        <a class="admin-sidebar-link" href="admin-slots.html">
+          <i class="bi bi-calendar2-week"></i>
+          <span>Slots</span>
+        </a>
+
+        <a class="admin-sidebar-link" href="admin-appointments.html">
+          <i class="bi bi-clipboard-check"></i>
+          <span>Appointments</span>
+        </a>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <button id="logoutBtn" class="btn btn-outline-dark w-100">
+          <i class="bi bi-box-arrow-right me-2"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <button class="admin-menu-btn" id="adminMenuBtn" type="button">
+          <i class="bi bi-list"></i>
+        </button>
+
+        <h1 class="admin-page-title">Admin Doctors</h1>
+
+        <button id="newBtn" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New</button>
+      </header>
+
+      <section class="admin-page-content">
+        <div id="pageMsg" class="alert d-none"></div>
+
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-lg-5">
+            <input id="qInput" class="form-control" placeholder="Search by name / clinic..." />
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <select id="serviceSelect" class="form-select">
+              <option value="">All Services</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-2">
+            <button id="searchBtn" class="btn btn-outline-primary w-100">Search</button>
+          </div>
         </div>
-        <div class="col-12 col-md-3">
-          <select id="serviceSelect" class="form-select">
-            <option value="">All Services</option>
-          </select>
+
+        <div class="mt-3 table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Doctor</th>
+                <th>Service</th>
+                <th>Fee</th>
+                <th>Rating</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
         </div>
-        <div class="col-12 col-md-3">
-          <button id="searchBtn" class="btn btn-outline-primary w-100">Search</button>
+
+        <div id="emptyBox" class="alert alert-info d-none">No doctors found.</div>
+      </section>
+
+      <div class="modal fade" id="doctorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalTitle">Doctor</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+              <div id="modalMsg" class="alert d-none"></div>
+
+              <div class="mb-2">
+                <label class="form-label">Full Name</label>
+                <input id="fullNameInput" class="form-control" />
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Title</label>
+                <input id="titleInput" class="form-control" />
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Bio</label>
+                <textarea id="bioInput" class="form-control" rows="3"></textarea>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Clinic Name</label>
+                <input id="clinicInput" class="form-control" />
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Service</label>
+                <select id="modalServiceSelect" class="form-select">
+                  <option value="">Select service</option>
+                </select>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label">Fee</label>
+                  <input id="feeInput" type="number" min="0" class="form-control" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Rating</label>
+                  <input id="ratingInput" type="number" min="0" max="5" step="0.1" class="form-control" />
+                </div>
+              </div>
+
+              <div class="mt-2">
+                <label class="form-label">Doctor Image</label>
+                <input id="imageFileInput" type="file" accept="image/*" class="form-control" />
+                <div class="text-muted small mt-1">Choose an image from your device.</div>
+              </div>
+
+              <div class="mt-2 d-none" id="currentImageWrap">
+                <label class="form-label">Current Image</label>
+                <div>
+                  <img id="currentImagePreview" src="" alt="Current doctor image" style="max-width: 100%; max-height: 180px; border-radius: 12px;" />
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+              <button id="saveBtn" class="btn btn-primary">Save</button>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="mt-3 table-responsive">
-        <table class="table table-sm align-middle">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Doctor</th>
-              <th>Service</th>
-              <th>Fee</th>
-              <th>Rating</th>
-              <th>Status</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-
-      <div id="emptyBox" class="alert alert-info d-none">No doctors found.</div>
-    </section>
-
-    <!-- Modal: Create/Edit Doctor -->
-    <div class="modal fade" id="doctorModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalTitle">Doctor</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-
-          <div class="modal-body">
-            <div id="modalMsg" class="alert d-none"></div>
-
-            <div class="mb-2">
-              <label class="form-label">Full Name</label>
-              <input id="fullNameInput" class="form-control" />
-            </div>
-
-            <div class="mb-2">
-              <label class="form-label">Title</label>
-              <input id="titleInput" class="form-control" />
-            </div>
-
-            <div class="mb-2">
-              <label class="form-label">Bio</label>
-              <textarea id="bioInput" class="form-control" rows="3"></textarea>
-            </div>
-
-            <div class="mb-2">
-              <label class="form-label">Clinic Name</label>
-              <input id="clinicInput" class="form-control" />
-            </div>
-
-            <div class="mb-2">
-              <label class="form-label">Service</label>
-              <select id="modalServiceSelect" class="form-select">
-                <option value="">Select service</option>
-              </select>
-            </div>
-
-            <div class="row g-2">
-              <div class="col-6">
-                <label class="form-label">Fee</label>
-                <input id="feeInput" type="number" min="0" class="form-control" />
-              </div>
-              <div class="col-6">
-                <label class="form-label">Rating</label>
-                <input id="ratingInput" type="number" min="0" max="5" step="0.1" class="form-control" />
-              </div>
-            </div>
-
-            <div class="mt-2">
-              <label class="form-label">Doctor Image</label>
-              <input id="imageFileInput" type="file" accept="image/*" class="form-control" />
-              <div class="text-muted small mt-1">Choose an image from your device.</div>
-            </div>
-
-            <div class="mt-2 d-none" id="currentImageWrap">
-              <label class="form-label">Current Image</label>
-              <div>
-                <img id="currentImagePreview" src="" alt="Current doctor image" style="max-width: 100%; max-height: 180px; border-radius: 12px;" />
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-            <button id="saveBtn" class="btn btn-primary">Save</button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <nav class="cb-bottom-nav">
-      <a class="cb-nav-item" href="admin-dashboard.html"><i class="bi bi-speedometer2"></i></a>
-      <a class="cb-nav-item active" href="admin-doctors.html"><i class="bi bi-people"></i></a>
-      <a class="cb-nav-item" href="admin-slots.html"><i class="bi bi-calendar2-week"></i></a>
-      <a class="cb-nav-item" href="admin-appointments.html"><i class="bi bi-clipboard-check"></i></a>
-    </nav>
-
+    </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script src="../js/config.js"></script>
   <script src="../js/api.js"></script>
-
   <script src="../js/utils.dom.js"></script>
   <script src="../js/utils.ui.js"></script>
   <script src="../js/utils.session.js"></script>
+
+  <script>
+    const adminSidebar = document.getElementById("adminSidebar");
+    const adminSidebarOverlay = document.getElementById("adminSidebarOverlay");
+    const adminMenuBtn = document.getElementById("adminMenuBtn");
+
+    function openAdminSidebar() {
+      adminSidebar?.classList.add("is-open");
+      adminSidebarOverlay?.classList.add("show");
+    }
+
+    function closeAdminSidebar() {
+      adminSidebar?.classList.remove("is-open");
+      adminSidebarOverlay?.classList.remove("show");
+    }
+
+    adminMenuBtn?.addEventListener("click", openAdminSidebar);
+    adminSidebarOverlay?.addEventListener("click", closeAdminSidebar);
+    window.addEventListener("resize", () => {
+      if (window.innerWidth >= 992) closeAdminSidebar();
+    });
+  </script>
 
   <script src="../js/admin-doctors.js"></script>
 </body>
