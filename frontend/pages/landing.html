@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clinicora | Book Your Doctor Online</title>
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <!-- Bootstrap Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+  >
+
+  <!-- Main project CSS -->
+  <link href="../css/main.css" rel="stylesheet">
+</head>
+<body class="cb-landing-body">
+
+  <div class="cb-landing-page">
+
+    <!-- Header / Navbar -->
+    <header class="cb-landing-header">
+      <div class="cb-landing-container cb-landing-nav">
+
+        <!-- Brand -->
+        <a href="home.html" class="cb-brand" aria-label="Clinicora home">
+          <span class="cb-brand-mark">
+            <i class="bi bi-heart-pulse-fill"></i>
+          </span>
+          <span class="cb-brand-text">Clinicora</span>
+        </a>
+
+        <!-- Desktop navigation links -->
+        <nav class="cb-landing-links" aria-label="Primary navigation">
+          <a href="#about">About</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#doctors">Doctors</a>
+          <a href="#features">Features</a>
+          <a href="#testimonials">Reviews</a>
+        </nav>
+
+        <!-- Header actions -->
+        <div class="cb-landing-actions">
+          <a href="login.html" class="cb-btn cb-btn-ghost">Sign In</a>
+          <a href="register.html" class="cb-btn cb-btn-primary">Get Started</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+
+      <!-- Hero Section -->
+      <section class="cb-hero-section">
+        <div class="cb-landing-container cb-hero-grid">
+
+          <!-- Left content -->
+          <div class="cb-hero-copy">
+            <span class="cb-hero-badge">
+              Trusted online clinic booking experience
+            </span>
+
+            <h1>Book your next doctor appointment with speed and confidence.</h1>
+
+            <p>
+              Search top doctors, compare specialties, and reserve the right
+              appointment slot in a modern and simple healthcare platform.
+            </p>
+
+            <!-- Hero buttons -->
+            <div class="cb-hero-cta">
+              <a href="register.html" class="cb-btn cb-btn-primary cb-btn-lg">
+                Book Appointment
+              </a>
+
+              <a href="#about" class="cb-btn cb-btn-outline cb-btn-lg">
+                Learn More
+              </a>
+            </div>
+
+            <!-- Search form -->
+            <form id="heroSearchForm" class="cb-hero-search" autocomplete="off">
+              <div class="cb-hero-search-field">
+                <i class="bi bi-search"></i>
+                <input
+                  id="heroDoctorInput"
+                  type="text"
+                  placeholder="Search doctor or specialty"
+                  aria-label="Search doctor or specialty"
+                />
+              </div>
+
+              <div class="cb-hero-search-field">
+                <i class="bi bi-geo-alt"></i>
+                <input
+                  id="heroLocationInput"
+                  type="text"
+                  placeholder="Location"
+                  aria-label="Location"
+                />
+              </div>
+
+              <button type="submit" class="cb-btn cb-btn-primary">
+                Search
+              </button>
+            </form>
+
+            <!-- Hero stats -->
+            <div class="cb-hero-stats">
+              <article>
+                <strong>120+</strong>
+                <span>Verified doctors</span>
+              </article>
+
+              <article>
+                <strong>24/7</strong>
+                <span>Booking access</span>
+              </article>
+
+              <article>
+                <strong>4.9/5</strong>
+                <span>Patient satisfaction</span>
+              </article>
+            </div>
+          </div>
+
+          <!-- Right visual -->
+          <div class="cb-hero-visual" aria-hidden="true">
+            <div class="cb-hero-orbit cb-hero-orbit-one"></div>
+            <div class="cb-hero-orbit cb-hero-orbit-two"></div>
+
+            <div class="cb-hero-doctor-card">
+              <div class="cb-hero-avatar-wrap">
+                <div class="cb-hero-avatar">
+                  <i class="bi bi-person-vcard-fill"></i>
+                </div>
+              </div>
+
+              <div class="cb-hero-card-content">
+                <span class="cb-hero-card-label">Featured Specialist</span>
+                <h2>Meet top-rated doctors online</h2>
+                <p>
+                  Fast booking, clear time slots, and a smooth appointment
+                  experience from the first click.
+                </p>
+
+                <div class="cb-hero-card-mini-grid">
+                  <div>
+                    <i class="bi bi-shield-check"></i>
+                    <span>Verified profiles</span>
+                  </div>
+
+                  <div>
+                    <i class="bi bi-calendar2-check"></i>
+                    <span>Easy scheduling</span>
+                  </div>
+
+                  <div>
+                    <i class="bi bi-chat-dots"></i>
+                    <span>Helpful support</span>
+                  </div>
+
+                  <div>
+                    <i class="bi bi-lock"></i>
+                    <span>Private booking</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Floating cards -->
+            <div class="cb-floating-card cb-floating-card-top">
+              <i class="bi bi-patch-check-fill"></i>
+              <div>
+                <strong>Trusted Platform</strong>
+                <span>Safe and simple booking flow</span>
+              </div>
+            </div>
+
+            <div class="cb-floating-card cb-floating-card-bottom">
+              <i class="bi bi-clock-history"></i>
+              <div>
+                <strong>Flexible Slots</strong>
+                <span>Choose the time that fits you</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About section -->
+      <section id="about" class="cb-section cb-soft-section">
+        <div class="cb-landing-container">
+          <div class="cb-section-heading">
+            <span class="cb-section-kicker">About Us</span>
+            <h2>Your health, our priority.</h2>
+            <p>
+              Clinicora helps patients discover specialists, explore services,
+              and book appointments with less effort and more clarity.
+            </p>
+          </div>
+
+          <div class="cb-about-grid">
+            <article class="cb-info-card">
+              <h3>Who We Are</h3>
+              <p>
+                We are building a modern clinic booking platform that connects
+                patients with trusted doctors through a smooth, responsive,
+                and easy-to-use experience.
+              </p>
+            </article>
+
+            <article class="cb-info-card">
+              <h3>Our Services</h3>
+              <ul id="landingServicesList" class="cb-check-list">
+                <li>Loading services...</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- How it works -->
+      <section id="how-it-works" class="cb-section">
+        <div class="cb-landing-container">
+          <div class="cb-section-heading cb-centered-heading">
+            <span class="cb-section-kicker">How It Works</span>
+            <h2>Book in three simple steps.</h2>
+          </div>
+
+          <div class="cb-steps-grid">
+            <article class="cb-step-card">
+              <span class="cb-step-number">1</span>
+              <h3>Search for a doctor</h3>
+              <p>
+                Browse doctors by specialty and quickly find the most relevant
+                medical service.
+              </p>
+            </article>
+
+            <article class="cb-step-card">
+              <span class="cb-step-number">2</span>
+              <h3>Choose a time slot</h3>
+              <p>
+                Select the available appointment that matches your schedule
+                without confusion.
+              </p>
+            </article>
+
+            <article class="cb-step-card">
+              <span class="cb-step-number">3</span>
+              <h3>Confirm your booking</h3>
+              <p>
+                Complete the booking flow and stay ready for your appointment
+                with confidence.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Popular doctors -->
+      <section id="doctors" class="cb-section cb-soft-section">
+        <div class="cb-landing-container">
+          <div class="cb-section-heading cb-centered-heading">
+            <span class="cb-section-kicker">Popular Doctors</span>
+            <h2>Top specialists patients love.</h2>
+            <p>
+              These cards are loaded directly from your backend endpoint.
+            </p>
+          </div>
+
+          <div id="landingDoctorsList" class="cb-doctors-grid">
+            <!-- Doctors are inserted here by JavaScript -->
+          </div>
+
+          <div id="landingDoctorsError" class="alert alert-danger d-none mt-4"></div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section id="features" class="cb-section">
+        <div class="cb-landing-container">
+          <div class="cb-section-heading cb-centered-heading">
+            <span class="cb-section-kicker">Features</span>
+            <h2>Built for a better booking experience.</h2>
+          </div>
+
+          <div class="cb-features-grid">
+            <article class="cb-feature-card">
+              <span class="cb-feature-icon">
+                <i class="bi bi-ui-checks-grid"></i>
+              </span>
+              <h3>Easy booking flow</h3>
+              <p>
+                Clean steps that help patients reserve appointments without friction.
+              </p>
+            </article>
+
+            <article class="cb-feature-card">
+              <span class="cb-feature-icon">
+                <i class="bi bi-patch-check"></i>
+              </span>
+              <h3>Verified doctors</h3>
+              <p>
+                Display trusted medical profiles with clear details and simple access.
+              </p>
+            </article>
+
+            <article class="cb-feature-card">
+              <span class="cb-feature-icon">
+                <i class="bi bi-headset"></i>
+              </span>
+              <h3>Helpful support</h3>
+              <p>
+                Give patients confidence through a clean interface and guided actions.
+              </p>
+            </article>
+
+            <article class="cb-feature-card">
+              <span class="cb-feature-icon">
+                <i class="bi bi-shield-lock"></i>
+              </span>
+              <h3>Secure & private</h3>
+              <p>
+                Keep the booking experience professional, simple, and privacy-focused.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Testimonials -->
+      <section id="testimonials" class="cb-section cb-soft-section">
+        <div class="cb-landing-container">
+          <div class="cb-section-heading cb-centered-heading">
+            <span class="cb-section-kicker">Testimonials</span>
+            <h2>What our patients say.</h2>
+          </div>
+
+          <div class="cb-testimonials-grid">
+            <article class="cb-testimonial-card">
+              <div class="cb-testimonial-avatar">
+                <i class="bi bi-person-circle"></i>
+              </div>
+              <div>
+                <p>
+                  “Excellent service. I found the right doctor quickly and the booking process was very smooth.”
+                </p>
+                <strong>Jessica M.</strong>
+              </div>
+            </article>
+
+            <article class="cb-testimonial-card">
+              <div class="cb-testimonial-avatar">
+                <i class="bi bi-person-circle"></i>
+              </div>
+              <div>
+                <p>
+                  “Very professional and easy to use. I would definitely recommend it to others.”
+                </p>
+                <strong>Michael R.</strong>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cb-section">
+        <div class="cb-landing-container">
+          <div class="cb-cta-box">
+            <span class="cb-section-kicker">Ready to book?</span>
+            <h2>Take control of your healthcare journey today.</h2>
+            <p>
+              Create an account, explore specialists, and reserve your
+              appointment in minutes.
+            </p>
+
+            <div class="cb-hero-cta cb-cta-actions">
+              <a href="register.html" class="cb-btn cb-btn-primary cb-btn-lg">
+                Create Account
+              </a>
+              <a href="login.html" class="cb-btn cb-btn-outline cb-btn-lg">
+                Sign In
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Project JS -->
+ <script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/landing.js"></script>
+</body>
+</html>
