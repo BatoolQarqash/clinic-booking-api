@@ -12,7 +12,6 @@
   const loginErrorBox = document.getElementById("loginError");
   const registerErrorBox = document.getElementById("registerError");
 
-
   /* --------------------------------------------------
      UI helpers
   -------------------------------------------------- */
@@ -25,7 +24,9 @@
     showAlert(loginErrorBox, "danger", msg);
   }
 
-  /** Hide login error alert. */
+  /**
+   * Hide login error alert.
+   */
   function hideLoginError() {
     hideAlert(loginErrorBox);
   }
@@ -38,28 +39,47 @@
     showAlert(registerErrorBox, "danger", msg);
   }
 
-  /** Hide register error alert. */
+  /**
+   * Hide register error alert.
+   */
   function hideRegisterError() {
     hideAlert(registerErrorBox);
   }
 
-
   /* --------------------------------------------------
-     Navigation
+     Redirect helpers
   -------------------------------------------------- */
 
   /**
-   * Redirect user after successful login based on role.
-   * Admin -> admin-dashboard.html
-   * User  -> home.html
+   * Read redirect target from current URL query string.
+   * Example:
+   * login.html?redirect=doctor-details.html%3Fid%3D1
+   * @returns {string|null}
+   */
+  function getRedirectTarget() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("redirect");
+  }
+
+  /**
+   * Redirect user after successful login/register.
+   * Priority:
+   * 1) redirect query parameter
+   * 2) role-based default route
    * @param {string} role
    */
   function redirectByRole(role) {
+    const redirectTarget = getRedirectTarget();
+
+    if (redirectTarget) {
+      window.location.href = redirectTarget;
+      return;
+    }
+
     window.location.href = (role === "Admin")
       ? "admin-dashboard.html"
       : "home.html";
   }
-
 
   /* --------------------------------------------------
      Login
@@ -80,7 +100,6 @@
       return;
     }
 
-    // Show loading state on the button
     if (loginBtn) setButtonLoading(loginBtn, true, "Signing in...");
 
     try {
@@ -89,10 +108,8 @@
         body: { email, password }
       });
 
-      // Support both role/Role just in case
       const role = result.role || result.Role || "User";
 
-      // ✅ use shared session helper from utils.session.js
       saveSession({
         token: result.token || result.Token,
         role,
@@ -104,12 +121,11 @@
       redirectByRole(role);
 
     } catch (e) {
-      showLoginError(e.message);
+      showLoginError(e.message || "Login failed.");
     } finally {
       if (loginBtn) setButtonLoading(loginBtn, false);
     }
   }
-
 
   /* --------------------------------------------------
      Register
@@ -141,7 +157,6 @@
 
       const role = result.role || result.Role || "User";
 
-      // ✅ use shared session helper
       saveSession({
         token: result.token || result.Token,
         role,
@@ -150,25 +165,19 @@
         email: result.email || result.Email
       });
 
-      // After register: go to home (MVP flow)
-      window.location.href = "home.html";
+      redirectByRole(role);
 
     } catch (e) {
-      showRegisterError(e.message);
+      showRegisterError(e.message || "Registration failed.");
     } finally {
       if (registerBtn) setButtonLoading(registerBtn, false);
     }
   }
 
-
   /* --------------------------------------------------
      Events
   -------------------------------------------------- */
 
-  // Bind login if the button exists on this page
   loginBtn?.addEventListener("click", handleLogin);
-
-  // Bind register if the button exists on this page
   registerBtn?.addEventListener("click", handleRegister);
-
 })();

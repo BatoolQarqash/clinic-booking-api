@@ -1,8 +1,4 @@
-// ============================================
-// Home page script
-// This file now powers the public landing page
-// instead of the old authenticated mobile-style home.
-// ============================================
+// frontend/js/landing.js
 
 (() => {
   // -----------------------------
@@ -13,10 +9,10 @@
   const doctorsError = document.getElementById("landingDoctorsError");
   const heroSearchForm = document.getElementById("heroSearchForm");
   const heroDoctorInput = document.getElementById("heroDoctorInput");
+  const heroLocationInput = document.getElementById("heroLocationInput");
 
   // -----------------------------
   // Escape unsafe text before rendering it in HTML
-  // This prevents simple HTML injection issues.
   // -----------------------------
   function escapeHtml(value) {
     return String(value ?? "")
@@ -29,10 +25,6 @@
 
   // -----------------------------
   // Resolve doctor image URL
-  // Handles:
-  // 1) full external URLs
-  // 2) root-relative backend URLs
-  // 3) local asset fallback
   // -----------------------------
   function resolveImageUrl(imageUrl) {
     if (!imageUrl) return "../assets/img/doctor-placeholder.png";
@@ -49,6 +41,26 @@
     }
 
     return `../assets/img/${imageUrl}`;
+  }
+
+  // -----------------------------
+  // Check whether the visitor already has a valid session token
+  // -----------------------------
+  function isLoggedIn() {
+    return typeof getToken === "function" && !!getToken();
+  }
+
+  // -----------------------------
+  // Build the final destination.
+  // If logged in -> go directly to target page.
+  // If not logged in -> go to login page with redirect target.
+  // -----------------------------
+  function buildProtectedTarget(targetPage) {
+    if (isLoggedIn()) {
+      return targetPage;
+    }
+
+    return `login.html?redirect=${encodeURIComponent(targetPage)}`;
   }
 
   // -----------------------------
@@ -73,8 +85,6 @@
   function renderServices(services) {
     const topServices = (services || []).slice(0, 6);
 
-    // If backend does not return services,
-    // render a clean fallback list.
     if (!topServices.length) {
       servicesList.innerHTML = `
         <li>Online doctor appointments</li>
@@ -94,13 +104,13 @@
 
   // -----------------------------
   // Render doctor cards
+  // Book Now checks session first
   // -----------------------------
   function renderDoctors(doctors) {
     doctorsList.innerHTML = "";
 
     const items = (doctors || []).slice(0, 4);
 
-    // Fallback UI if there are no doctors yet
     if (!items.length) {
       doctorsList.innerHTML = `
         <article class="cb-doctor-landing-card">
@@ -124,6 +134,9 @@
       const safeTitle = escapeHtml(title);
       const safeRating = escapeHtml(rating);
 
+      const targetPage = `doctor-details.html?id=${id}`;
+      const finalUrl = buildProtectedTarget(targetPage);
+
       const card = document.createElement("article");
       card.className = "cb-doctor-landing-card";
 
@@ -146,13 +159,12 @@
             </span>
           </div>
 
-          <a href="doctor-details.html?id=${id}" class="cb-btn cb-btn-primary cb-btn-block">
+          <a href="${finalUrl}" class="cb-btn cb-btn-primary cb-btn-block">
             Book Now
           </a>
         </div>
       `;
 
-      // Replace broken images with a local placeholder
       const image = card.querySelector(".cb-doctor-landing-image");
       image.addEventListener("error", () => {
         image.src = "../assets/img/doctor-placeholder.png";
@@ -164,14 +176,12 @@
 
   // -----------------------------
   // Load services from backend
-  // Endpoint: /api/services
   // -----------------------------
   async function loadServices() {
     try {
       const services = await apiFetch("/services");
       renderServices(services);
     } catch (error) {
-      // If services fail, we still render fallback content
       renderServices([]);
       console.error("Failed to load services:", error.message);
     }
@@ -179,7 +189,6 @@
 
   // -----------------------------
   // Load top doctors from backend
-  // Endpoint: /api/doctors/top?take=4
   // -----------------------------
   async function loadDoctors() {
     hideDoctorsError();
@@ -197,18 +206,30 @@
 
   // -----------------------------
   // Hero search behavior
-  // Redirect user to doctors page with query string
-  // Example: doctors.html?q=cardiology
+  // Search checks session first
   // -----------------------------
   heroSearchForm?.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const query = heroDoctorInput?.value?.trim() || "";
-    const target = query
-      ? `doctors.html?q=${encodeURIComponent(query)}`
+    const location = heroLocationInput?.value?.trim() || "";
+
+    const params = new URLSearchParams();
+
+    if (query) {
+      params.set("q", query);
+    }
+
+    // Keep location in the URL for future use
+    if (location) {
+      params.set("location", location);
+    }
+
+    const targetPage = params.toString()
+      ? `doctors.html?${params.toString()}`
       : "doctors.html";
 
-    window.location.href = target;
+    window.location.href = buildProtectedTarget(targetPage);
   });
 
   // -----------------------------
