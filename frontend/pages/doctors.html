@@ -27,10 +27,21 @@
     <header class="d-flex align-items-center justify-content-between pt-3 px-3">
 
       <!-- Back button -->
-      <a class="btn cb-icon-btn" href="home.html" title="Back">
-        <i class="bi bi-chevron-left"></i>
-      </a>
+      <div class="d-flex align-items-center gap-2">
+  <button
+    class="cb-menu-btn"
+    id="menuToggle"
+    type="button"
+    aria-label="Open menu"
+    title="Menu"
+  >
+    <i class="bi bi-list"></i>
+  </button>
 
+  <a class="btn cb-icon-btn" href="home.html" title="Back">
+    <i class="bi bi-chevron-left"></i>
+  </a>
+</div>
       <!-- Page title -->
       <div class="fw-semibold" id="pageTitle">Doctors</div>
 
@@ -99,9 +110,10 @@
 
     </section>
 
-    <!-- Bottom Navigation -->
-    <nav class="cb-bottom-nav">
-  <a class="cb-nav-item" href="home.html" title="Home">
+    <!-- Navigation -->
+     <div class="cb-nav-overlay" id="navOverlay"></div>
+    <nav class="cb-bottom-nav" id="sideNav">
+    <a class="cb-nav-item" href="home.html" title="Home">
     <i class="bi bi-house-fill"></i>
     <span class="cb-nav-label">Home</span>
   </a>
@@ -132,6 +144,7 @@
 <script src="../js/utils.dom.js"></script>
 <script src="../js/utils.ui.js"></script>
 <script src="../js/utils.session.js"></script>
+<script src="../js/mobile-nav.js"></script>
 
   <script src="../js/doctors.js"></script>
 

@@ -22,22 +22,30 @@
 
     <!-- Header -->
     <header class="d-flex align-items-center justify-content-between pt-3 px-3">
-      <div class="d-flex align-items-center gap-2">
-        <!-- User avatar -->
-        <img
-          src="../assets/img/avatar.png"
-          class="cb-avatar"
-          alt="avatar"
-          onerror="this.style.display='none'"
-        />
+  <div class="d-flex align-items-center gap-2">
+    <button
+      class="cb-menu-btn"
+      id="menuToggle"
+      type="button"
+      aria-label="Open menu"
+      title="Menu"
+    >
+      <i class="bi bi-list"></i>
+    </button>
 
-        <div>
-          <div class="cb-hello">
-            Hello <span class="cb-hello-name" id="helloName">User</span> !
-          </div>
-        </div>
+    <img
+      src="../assets/img/avatar.png"
+      class="cb-avatar"
+      alt="avatar"
+      onerror="this.style.display='none'"
+    />
+
+    <div>
+      <div class="cb-hello">
+        Hello <span class="cb-hello-name" id="helloName">User</span> !
       </div>
-
+    </div>
+  </div>
       <!-- Header right actions -->
       <div class="d-flex align-items-center gap-2">
 
@@ -153,7 +161,8 @@
     </section>
 
     <!-- Navigation -->
-      <nav class="cb-bottom-nav">
+     <div class="cb-nav-overlay" id="navOverlay"></div>
+      <nav class="cb-bottom-nav" id="sideNav">
   <a class="cb-nav-item active" href="home.html" title="Home">
     <i class="bi bi-house-fill"></i>
     <span class="cb-nav-label">Home</span>
@@ -187,6 +196,7 @@
   <script src="../js/utils.dom.js"></script>
   <script src="../js/utils.ui.js"></script>
   <script src="../js/utils.session.js"></script>
+  <script src="../js/mobile-nav.js"></script>
 
   <!-- Page script -->
   <script src="../js/home.js"></script>
