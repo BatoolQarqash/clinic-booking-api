@@ -1,5 +1,5 @@
 // frontend/js/landing.js
-
+console.log("USING UPDATED LANDING FILE");
 (() => {
   // -----------------------------
   // DOM references
@@ -27,22 +27,36 @@
   // Resolve doctor image URL
   // -----------------------------
   function resolveImageUrl(imageUrl) {
-    if (!imageUrl) return "../assets/img/doctor-placeholder.png";
+  console.log("resolveImageUrl input =", imageUrl);
 
-    if (
-      imageUrl.startsWith("http://") ||
-      imageUrl.startsWith("https://")
-    ) {
-      return imageUrl;
-    }
+  if (!imageUrl) return "../assets/img/doctor-placeholder.png";
 
-    if (imageUrl.startsWith("/")) {
-      return `${window.location.origin}${imageUrl}`;
-    }
+  const value = String(imageUrl).trim();
+  if (!value) return "../assets/img/doctor-placeholder.png";
 
-    return `../assets/img/${imageUrl}`;
+  const backendOrigin = API_BASE.replace(/\/api\/?$/, "");
+  console.log("backendOrigin =", backendOrigin);
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
   }
 
+  if (value.startsWith("/")) {
+    const finalUrl = `${backendOrigin}${value}`;
+    console.log("final image url =", finalUrl);
+    return finalUrl;
+  }
+
+  if (value.startsWith("uploads/")) {
+    const finalUrl = `${backendOrigin}/${value}`;
+    console.log("final image url =", finalUrl);
+    return finalUrl;
+  }
+
+  const fallbackUrl = `../assets/img/${value}`;
+  console.log("fallback image url =", fallbackUrl);
+  return fallbackUrl;
+}
   // -----------------------------
   // Check whether the visitor already has a valid session token
   // -----------------------------
@@ -124,6 +138,7 @@
     }
 
     items.forEach(doctor => {
+      console.log("Landing doctor imageUrl:", doctor.imageUrl, doctor.ImageUrl);
       const id = doctor.id || doctor.Id;
       const fullName = doctor.fullName || doctor.FullName || "Doctor";
       const title = doctor.title || doctor.Title || "Specialist";
