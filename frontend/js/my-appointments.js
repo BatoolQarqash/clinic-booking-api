@@ -84,7 +84,7 @@
       const apptId = a.id || a.Id;
 
       const col = document.createElement("div");
-      col.className = "col-12 col-md-6 col-lg-4";
+       col.className = "col-12 col-md-6 col-xl-4";
 
       col.innerHTML = `
         <div class="cb-appt-card">

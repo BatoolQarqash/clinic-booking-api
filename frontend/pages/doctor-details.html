@@ -11,30 +11,47 @@
 
   <!-- Your main design tokens + components -->
   <link href="../css/main.css" rel="stylesheet">
+<link href="../css/user-layout.css" rel="stylesheet">
 </head>
 
 <body class="cb-bg">
   <div class="cb-shell">
 
     <!-- Top bar -->
-    <header class="d-flex align-items-center justify-content-between pt-3 px-3">
-      <!-- Back button -->
-      <a class="btn cb-icon-btn" href="home.html" title="Back">
-        <i class="bi bi-chevron-left"></i>
-      </a>
+     <header class="d-flex align-items-center justify-content-between pt-3 px-3">
+  <div class="d-flex align-items-center gap-2">
+    <button
+      class="cb-menu-btn"
+      id="menuToggle"
+      type="button"
+      aria-label="Open menu"
+      title="Menu"
+    >
+      <i class="bi bi-list"></i>
+    </button>
 
-      <div class="fw-semibold">Doctor</div>
+    <button
+      class="btn cb-icon-btn"
+      type="button"
+      title="Back"
+      data-smart-back
+      data-fallback="doctors.html"
+    >
+      <i class="bi bi-chevron-left"></i>
+    </button>
+  </div>
 
-       <button
-  id="favoriteBtn"
-  class="btn cb-icon-btn"
-  type="button"
-  title="Favorite"
->
-  <i id="favoriteIcon" class="bi bi-heart"></i>
-</button>
-    </header>
+  <div class="fw-semibold">Doctor</div>
 
+  <button
+    id="favoriteBtn"
+    class="btn cb-icon-btn"
+    type="button"
+    title="Favorite"
+  >
+    <i id="favoriteIcon" class="bi bi-heart"></i>
+  </button>
+</header>
     <!-- Doctor hero section -->
     <section class="px-3 mt-3">
       <div class="cb-doctor-hero shadow-sm">
@@ -91,27 +108,7 @@
     </section>
 
     <!-- Bottom nav -->
-     <nav class="cb-bottom-nav">
-  <a class="cb-nav-item" href="home.html" title="Home">
-    <i class="bi bi-house-fill"></i>
-    <span class="cb-nav-label">Home</span>
-  </a>
-
-  <a class="cb-nav-item" href="doctors.html" title="Doctors">
-    <i class="bi bi-people-fill"></i>
-    <span class="cb-nav-label">Doctors</span>
-  </a>
-
-  <a class="cb-nav-item active" href="my-appointments.html" title="Appointments">
-    <i class="bi bi-clipboard-check"></i>
-    <span class="cb-nav-label">Appointments</span>
-  </a>
-
-  <a class="cb-nav-item" href="favorites.html" title="Favorites">
-    <i class="bi bi-heart"></i>
-    <span class="cb-nav-label">Favorites</span>
-  </a>
-</nav>
+     <div id="userNavMount"></div>
   </div>
 
   <!-- Scripts -->
@@ -122,7 +119,8 @@
 <script src="../js/utils.dom.js"></script>
 <script src="../js/utils.ui.js"></script>
 <script src="../js/utils.session.js"></script>
-
-  <script src="../js/doctor-details.js"></script>
+<script src="../js/user-layout.js"></script>
+<script src="../js/mobile-nav.js"></script>
+<script src="../js/doctor-details.js"></script>
 </body>
 </html>
