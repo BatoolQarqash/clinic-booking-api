@@ -1,0 +1,6 @@
+# Normalize line endings
+* text=auto
+
+# Keep GitHub language stats focused on the C# API
+frontend/** linguist-vendored
+wwwroot/** linguist-vendored

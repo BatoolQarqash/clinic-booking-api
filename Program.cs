@@ -46,7 +46,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new Exception("Connection string 'DefaultConnection' is missing.");
+    throw new InvalidOperationException(
+        "Connection string 'ConnectionStrings:DefaultConnection' is not configured. " +
+        "Locally: dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"<connection string>\". " +
+        "In Docker/Azure: set the environment variable ConnectionStrings__DefaultConnection.");
 }
 
 // Print useful startup diagnostics
@@ -97,7 +100,17 @@ var key = jwt["Key"];
 
 if (string.IsNullOrWhiteSpace(key))
 {
-    throw new Exception("JWT Key is missing. Please set Jwt:Key in appsettings.json or user secrets.");
+    throw new InvalidOperationException(
+        "JWT signing key 'Jwt:Key' is not configured. " +
+        "Locally: dotnet user-secrets set \"Jwt:Key\" \"<random key>\". " +
+        "In Docker/Azure: set the environment variable Jwt__Key.");
+}
+
+// HMAC-SHA256 requires a key of at least 256 bits (32 bytes)
+if (Encoding.UTF8.GetByteCount(key) < 32)
+{
+    throw new InvalidOperationException(
+        "JWT signing key 'Jwt:Key' is too short. Use at least 32 bytes, e.g. the output of `openssl rand -base64 64`.");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -151,7 +164,8 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("DevCors");
 
-if (app.Environment.IsDevelopment())
+// Swagger: always in Development, or anywhere when EnableSwagger=true (e.g. the public demo)
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("EnableSwagger"))
 {
     app.UseSwagger();
     app.UseSwaggerUI();

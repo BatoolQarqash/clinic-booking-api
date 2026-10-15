@@ -1,0 +1,47 @@
+# Usage:
+#   cp .env.example .env   # then fill in SA_PASSWORD and JWT_KEY
+#   docker compose up --build
+# API:     http://localhost:8080
+# Swagger: http://localhost:8080/swagger (when ENABLE_SWAGGER=true)
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: clinicbooking-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:?SA_PASSWORD must be set in .env}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    build: .
+    container_name: clinicbooking-api
+    depends_on:
+      db:
+        condition: service_healthy
+    # Migrations run on startup; retry if SQL Server is not ready yet
+    restart: on-failure
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=ClinicBookingDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
+      Jwt__Key: ${JWT_KEY:?JWT_KEY must be set in .env}
+      Admin__Email: ${ADMIN_EMAIL:-}
+      Admin__Password: ${ADMIN_PASSWORD:-}
+      EnableSwagger: ${ENABLE_SWAGGER:-false}
+    ports:
+      - "8080:8080"
+    volumes:
+      - doctor-uploads:/app/wwwroot/uploads
+
+volumes:
+  sqlserver-data:
+  doctor-uploads:
