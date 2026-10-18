@@ -89,14 +89,27 @@ public class SlotService
 
     public async Task<(bool ok, int statusCode, object result)> DeleteSlotAsync(int slotId)
     {
-        var slot = await _db.AvailabilitySlots.FirstOrDefaultAsync(s => s.Id == slotId);
+        var slot = await _db.AvailabilitySlots
+            .Include(s => s.Appointments)
+            .FirstOrDefaultAsync(s => s.Id == slotId);
         if (slot == null) return (false, 404, new { message = "Slot not found" });
 
-        if (slot.IsBooked)
-            return (false, 400, new { message = "Cannot delete a booked slot" });
+        if (slot.IsBooked || slot.Appointments.Any(a => a.Status != AppointmentStatus.Cancelled))
+            return (false, 409, new { message = "Cannot delete a slot that has a booked or completed appointment" });
 
+        // Only cancelled appointments remain. The FK is NoAction, so remove them explicitly;
+        // a single SaveChanges runs both deletes in one transaction.
+        _db.Appointments.RemoveRange(slot.Appointments);
         _db.AvailabilitySlots.Remove(slot);
-        await _db.SaveChangesAsync();
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return (false, 409, new { message = "Slot could not be deleted because it is still referenced (it may have just been booked)." });
+        }
 
         return (true, 200, new { message = "Slot deleted" });
     }

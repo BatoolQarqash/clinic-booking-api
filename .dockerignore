@@ -14,3 +14,4 @@ appsettings.*.local.json
 docker-compose*.yml
 Dockerfile
 .dockerignore
+tests/

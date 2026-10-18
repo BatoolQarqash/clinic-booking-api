@@ -7,9 +7,35 @@ namespace ClinicBooking.Services;
 
 public class AppointmentService
 {
-    private readonly AppDbContext _db;
+    private const string DefaultTimeZoneId = "Asia/Amman";
+    private const string FallbackTimeZoneId = "Jordan Standard Time";
 
-    public AppointmentService(AppDbContext db) => _db = db;
+    private readonly AppDbContext _db;
+    private readonly TimeProvider _timeProvider;
+    private readonly TimeZoneInfo _clinicTimeZone;
+
+    public AppointmentService(AppDbContext db, TimeProvider timeProvider, IConfiguration config)
+    {
+        _db = db;
+        _timeProvider = timeProvider;
+        _clinicTimeZone = ResolveTimeZone(config["Clinic:TimeZoneId"]);
+    }
+
+    // Slot times are stored as clinic-local wall-clock times, so compare them against the
+    // clinic's local "now" rather than the server clock (which is UTC on Azure).
+    private DateTime ClinicNow => TimeZoneInfo.ConvertTime(_timeProvider.GetUtcNow(), _clinicTimeZone).DateTime;
+
+    private static TimeZoneInfo ResolveTimeZone(string? id)
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(string.IsNullOrWhiteSpace(id) ? DefaultTimeZoneId : id);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(FallbackTimeZoneId);
+        }
+    }
 
     public async Task<(bool ok, int statusCode, object result)> BookAsync(int userId, CreateAppointmentRequest req)
     {
@@ -20,7 +46,7 @@ public class AppointmentService
         if (slot.DoctorId != req.DoctorId)
             return (false, 400, new { message = "Slot does not belong to this doctor" });
 
-        if (slot.StartTime <= DateTime.Now)
+        if (slot.StartTime <= ClinicNow)
             return (false, 400, new { message = "You cannot book a slot in the past." });
 
         if (slot.IsBooked)
@@ -85,7 +111,7 @@ public class AppointmentService
         if (appt.Slot == null)
             return (false, 400, new { message = "Slot data is missing." });
 
-        var minutesLeft = (appt.Slot.StartTime - DateTime.Now).TotalMinutes;
+        var minutesLeft = (appt.Slot.StartTime - ClinicNow).TotalMinutes;
 
         if (minutesLeft <= 60)
             return (false, 400, new { message = "Cancellation is not allowed within 1 hour of the appointment." });

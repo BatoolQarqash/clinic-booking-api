@@ -21,9 +21,12 @@ public class AppDbContext : DbContext
             .HasIndex(u => u.Email)
             .IsUnique();
 
+        // Only one active appointment per slot. Cancelled rows (Status = 1) stay as history,
+        // so the slot can be booked again after a cancellation.
         modelBuilder.Entity<Appointment>()
             .HasIndex(a => a.SlotId)
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("[Status] <> 1");
 
         modelBuilder.Entity<AvailabilitySlot>()
             .HasIndex(s => new { s.DoctorId, s.StartTime })

@@ -50,7 +50,8 @@ namespace ClinicBooking.Migrations
                     b.HasIndex("DoctorId");
 
                     b.HasIndex("SlotId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Status] <> 1");
 
                     b.HasIndex("UserId");
 

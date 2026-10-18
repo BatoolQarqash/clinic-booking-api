@@ -82,13 +82,25 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
-// CORS (Dev)
+// CORS: origins come from Cors:AllowedOrigins. An empty list allows any origin in Development
+// and no cross-origin access anywhere else.
+const string CorsPolicyName = "FrontendCors";
+var allowedOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
+    .Where(o => !string.IsNullOrWhiteSpace(o))
+    .ToArray();
+var allowAnyOrigin = allowedOrigins.Length == 0 && builder.Environment.IsDevelopment();
+var corsEnabled = allowedOrigins.Length > 0 || allowAnyOrigin;
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevCors", policy =>
+    options.AddPolicy(CorsPolicyName, policy =>
     {
+        if (allowAnyOrigin)
+            policy.AllowAnyOrigin();
+        else
+            policy.WithOrigins(allowedOrigins);
+
         policy
-            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -130,6 +142,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // DI
 builder.Services.AddAuthorization();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<ClinicBooking.Services.SlotService>();
 builder.Services.AddScoped<ClinicBooking.Services.AppointmentService>();
@@ -162,7 +175,8 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.UseCors("DevCors");
+if (corsEnabled)
+    app.UseCors(CorsPolicyName);
 
 // Swagger: always in Development, or anywhere when EnableSwagger=true (e.g. the public demo)
 if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("EnableSwagger"))

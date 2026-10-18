@@ -4,4 +4,7 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="ClinicBooking.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/ClinicBooking.Tests/ClinicBooking.Tests.csproj" />
+  </Folder>
 </Solution>

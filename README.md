@@ -1,5 +1,7 @@
 # ClinicBooking API
 
+[![CI](https://github.com/BatoolQarqash/clinic-booking-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BatoolQarqash/clinic-booking-api/actions/workflows/ci.yml)
+
 A clinic appointment booking backend built with **ASP.NET Core 8 Web API**, **Entity Framework Core** and **SQL Server**. Patients browse medical services and doctors, see available time slots, and book or cancel appointments. Admins manage doctors, generate availability slots, and review all bookings.
 
 **Live demo:** `<!-- TODO: add Azure URL, e.g. https://<your-app>.azurewebsites.net/swagger -->`
@@ -27,15 +29,15 @@ A clinic appointment booking backend built with **ASP.NET Core 8 Web API**, **En
 - Book an appointment:
   - slots in the past are rejected
   - the slot must belong to the selected doctor
-  - double booking returns `409 Conflict`, backed by a unique index on the slot
+  - double booking returns `409 Conflict`, backed by a filtered unique index on the slot (active appointments only)
 - View own appointments
-- Cancel an appointment (blocked within 1 hour of the start time)
+- Cancel an appointment (blocked within 1 hour of the start time); the slot becomes bookable again and the cancelled row is kept as history
 
 **Admins**
 - Doctors: create, update, get, list, soft delete (`IsActive = false`)
 - Doctor photo upload (`.jpg`, `.jpeg`, `.png`, `.webp`, max 3 MB), stored under `wwwroot/uploads/doctors`
 - Generate slots in bulk for a day from start time, end time and slot length (5–240 min); existing slots are skipped
-- Delete unbooked slots
+- Delete slots: `409` if the slot has a booked or completed appointment; cancelled appointment rows are removed together with the slot
 - List all appointments with pagination and filters (status, doctor, user email, date range)
 - List registered users
 
@@ -79,7 +81,7 @@ ClinicBooking/
 
 **Request flow:** `Controller → Service (booking/slot rules) → AppDbContext → SQL Server`. Simple read endpoints query `AppDbContext` directly from the controller.
 
-**Data model:** a `Service` has many `Doctor`s. A `Doctor` has many `AvailabilitySlot`s. An `Appointment` links a `User`, a `Doctor` and one `AvailabilitySlot`. Unique indexes: `User.Email`, `Appointment.SlotId`, and `(AvailabilitySlot.DoctorId, StartTime)`.
+**Data model:** a `Service` has many `Doctor`s. A `Doctor` has many `AvailabilitySlot`s. An `Appointment` links a `User`, a `Doctor` and one `AvailabilitySlot`. Unique indexes: `User.Email`, `Appointment.SlotId` (filtered to non-cancelled appointments), and `(AvailabilitySlot.DoctorId, StartTime)`.
 
 ## Getting Started
 
@@ -119,6 +121,14 @@ dotnet run --launch-profile https
 
 Swagger opens at https://localhost:7075/swagger. The database is created and seeded on first run.
 
+### Running tests
+
+```bash
+dotnet test tests/ClinicBooking.Tests
+```
+
+The tests in [`tests/ClinicBooking.Tests`](tests/ClinicBooking.Tests) run the booking and slot services against the real `AppDbContext` on an in-memory SQLite database, so unique indexes and foreign keys are enforced, and use a fake clock for the time rules. No SQL Server or secrets are needed. CI runs them on every push and pull request to `main`.
+
 **Frontend (optional):** serve the `frontend/` folder with any static server (for example the VS Code Live Server extension) and open `frontend/pages/landing.html`. The API base URL is set in [`frontend/js/config.js`](frontend/js/config.js).
 
 ## Configuration
@@ -135,11 +145,17 @@ All settings can be provided through `appsettings.json`, user secrets, or enviro
 | `Admin__Email` | `Admin:Email` | No | Initial admin email, created on startup if no admin exists |
 | `Admin__Password` | `Admin:Password` | No | Initial admin password (used together with `Admin__Email`) |
 | `EnableSwagger` | `EnableSwagger` | No | `true` exposes Swagger outside Development (default `false`) |
+| `Clinic__TimeZoneId` | `Clinic:TimeZoneId` | No | Clinic time zone, IANA or Windows id (default `Asia/Amman`) |
+| `Cors__AllowedOrigins__0`, `Cors__AllowedOrigins__1`, … | `Cors:AllowedOrigins` | No | Origins allowed to call the API from a browser, e.g. `https://clinic.example.com`. Empty (default): any origin in Development, no cross-origin access in other environments |
 | `ASPNETCORE_ENVIRONMENT` | n/a | No | `Development` / `Production` |
 
 If a required value is missing, the app stops at startup with an error that names the missing setting.
 
 Docker Compose variables in `.env`: `SA_PASSWORD`, `JWT_KEY`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ENABLE_SWAGGER`.
+
+### Time zones
+
+Slot start and end times are stored as **clinic-local** wall-clock times (what the admin types in), while `CreatedAt` columns are UTC. The "no booking in the past" and "no cancellation within 1 hour" rules compare slot times with the clinic's current local time, computed from the UTC clock and `Clinic:TimeZoneId`. The rules therefore work the same whether the server runs in UTC (Azure, Docker) or in local time. If the configured id is not found, the app falls back to `Jordan Standard Time`. The Docker runtime image (Debian-based `aspnet:8.0`) includes `tzdata`, so IANA ids such as `Asia/Amman` resolve inside the container.
 
 ## API Endpoints
 
@@ -182,12 +198,13 @@ Access levels: **Public** = no token. **User** = any authenticated user (JWT). *
 | PUT | `/api/admin/doctors/{id}` | Admin | Update a doctor (optionally replace the image) |
 | DELETE | `/api/admin/doctors/{id}` | Admin | Soft delete (deactivate) a doctor |
 | POST | `/api/admin/slots/bulk` | Admin | Generate slots for a doctor and day (`{ doctorId, date, startTime, endTime, slotMinutes }`) |
-| DELETE | `/api/admin/slots/{slotId}` | Admin | Delete an unbooked slot |
+| DELETE | `/api/admin/slots/{slotId}` | Admin | Delete a slot (`409` if it has a booked or completed appointment) |
 | GET | `/api/admin/appointments` | Admin | Paginated appointments, filters: `page`, `pageSize`, `status`, `doctorId`, `userEmail`, `from`, `to` |
 
 ## Roadmap
 
-- [ ] Unit and integration tests (xUnit, `WebApplicationFactory`)
-- [ ] Restrict CORS to known origins in production
+- [x] Service tests (xUnit, SQLite in-memory)
+- [ ] HTTP integration tests (`WebApplicationFactory`)
+- [x] Restrict CORS to known origins in production (`Cors:AllowedOrigins`)
 - [ ] Refresh tokens
 - [ ] Rate limiting (especially on `/api/auth/*`)
