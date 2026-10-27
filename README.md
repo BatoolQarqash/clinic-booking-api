@@ -4,13 +4,19 @@
 
 A clinic appointment booking backend built with **ASP.NET Core 8 Web API**, **Entity Framework Core** and **SQL Server**. Patients browse medical services and doctors, see available time slots, and book or cancel appointments. Admins manage doctors, generate availability slots, and review all bookings.
 
-**Live demo:** `<!-- TODO: add Azure URL, e.g. https://<your-app>.azurewebsites.net/swagger -->`
+**Demo:** run it locally with Docker in two commands (see [Getting Started](#getting-started)). Screenshots and a short walkthrough are below.
 
-<!-- TODO: screenshots
-![Swagger UI](docs/screenshots/swagger.png)
-![Doctors page](docs/screenshots/doctors.png)
-![Admin dashboard](docs/screenshots/admin-dashboard.png)
--->
+![Demo walkthrough](docs/screenshots/demo.gif)
+
+## Screenshots
+
+| Swagger overview | Login (JWT) |
+|---|---|
+| ![Swagger overview](docs/screenshots/swagger-overview.png) | ![Login](docs/screenshots/swagger-login.png) |
+
+| Book an appointment | Admin: generate slots |
+|---|---|
+| ![Booking](docs/screenshots/swagger-booking.png) | ![Admin](docs/screenshots/swagger-admin.png) |
 
 ---
 
@@ -155,7 +161,7 @@ Docker Compose variables in `.env`: `SA_PASSWORD`, `JWT_KEY`, `ADMIN_EMAIL`, `AD
 
 ### Time zones
 
-Slot start and end times are stored as **clinic-local** wall-clock times (what the admin types in), while `CreatedAt` columns are UTC. The "no booking in the past" and "no cancellation within 1 hour" rules compare slot times with the clinic's current local time, computed from the UTC clock and `Clinic:TimeZoneId`. The rules therefore work the same whether the server runs in UTC (Azure, Docker) or in local time. If the configured id is not found, the app falls back to `Jordan Standard Time`. The Docker runtime image (Debian-based `aspnet:8.0`) includes `tzdata`, so IANA ids such as `Asia/Amman` resolve inside the container.
+Slot start and end times are stored as **clinic-local** wall-clock times (what the admin types in), while `CreatedAt` columns are UTC. The "no booking in the past" and "no cancellation within 1 hour" rules compare slot times with the clinic's current local time, computed from the UTC clock and `Clinic:TimeZoneId`. The rules therefore work the same whether the server runs in UTC (for example in Docker or a cloud host) or in local time. If the configured id is not found, the app falls back to `Jordan Standard Time`. The Docker runtime image (Debian-based `aspnet:8.0`) includes `tzdata`, so IANA ids such as `Asia/Amman` resolve inside the container.
 
 ## API Endpoints
 
