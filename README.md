@@ -6,7 +6,11 @@ A clinic appointment booking backend built with **ASP.NET Core 8 Web API**, **En
 
 **Demo:** run it locally with Docker in two commands (see [Getting Started](#getting-started)). Screenshots and a short walkthrough are below.
 
-![Demo walkthrough](docs/screenshots/demo.gif)
+
+
+https://github.com/user-attachments/assets/27f610bb-fc9f-412b-8b85-fc0db2c765ab
+
+
 
 ## Screenshots
 
